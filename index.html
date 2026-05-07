@@ -1746,6 +1746,30 @@ function closeDatePicker(e) {
   }
 }
 
+// ── 滾動時重新定位 date picker popup ──
+function repositionDpPopup() {
+  if (!dpAnchorEl) return;
+  const overlay = document.getElementById('dpOverlay');
+  if (!overlay.classList.contains('open')) return;
+  const rect = dpAnchorEl.getBoundingClientRect();
+  if (rect.bottom < 56 || rect.top > window.innerHeight) {
+    closeDatePicker();
+    return;
+  }
+  const popup  = document.getElementById('dpPopup');
+  const left   = Math.min(rect.left, window.innerWidth - 340);
+  const spaceBelow = window.innerHeight - rect.bottom - 8;
+  if (spaceBelow < 320) {
+    popup.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+    popup.style.top = 'auto';
+  } else {
+    popup.style.top  = (rect.bottom + 6) + 'px';
+    popup.style.bottom = 'auto';
+  }
+  popup.style.left = Math.max(8, left) + 'px';
+}
+window.addEventListener('scroll', repositionDpPopup, { passive: true });
+
 function dpChangeMonth(delta) {
   dpMonth += delta;
   if (dpMonth > 11) { dpMonth = 0; dpYear++; }
@@ -2113,6 +2137,31 @@ function closeAirportPicker(e) {
     document.querySelectorAll('.s-field').forEach(f => f.classList.remove('active-field'));
   }
 }
+
+// ── 滾動時重新定位 airport popup ──
+function repositionApPopup() {
+  if (!apAnchorEl) return;
+  const overlay = document.getElementById('apOverlay');
+  if (!overlay.classList.contains('open')) return;
+  const rect = apAnchorEl.getBoundingClientRect();
+  // 若 anchor 已捲出視窗就關閉
+  if (rect.bottom < 56 || rect.top > window.innerHeight) {
+    closeAirportPicker();
+    return;
+  }
+  const popup = document.getElementById('apPopup');
+  const left  = Math.min(rect.left, window.innerWidth - 390);
+  const spaceBelow = window.innerHeight - rect.bottom - 8;
+  if (spaceBelow < 200) {
+    popup.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+    popup.style.top = 'auto';
+  } else {
+    popup.style.top  = (rect.bottom + 6) + 'px';
+    popup.style.bottom = 'auto';
+  }
+  popup.style.left = Math.max(8, left) + 'px';
+}
+window.addEventListener('scroll', repositionApPopup, { passive: true });
 
 function filterAirports(q) {
   const kw = q.trim().toLowerCase();
