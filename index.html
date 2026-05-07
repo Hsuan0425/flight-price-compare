@@ -448,6 +448,85 @@ input[type=range] {
 }
 .btn-book-main:hover { background: var(--brand-dark); transform: translateY(-1px); }
 
+/* ── Combo Leg Detail ── */
+.combo-detail-wrap {
+  background: var(--surface);
+  border: 1.5px solid var(--brand-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.combo-detail-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 18px;
+  background: linear-gradient(90deg, var(--brand-pale), #fff7ed60);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px; font-weight: 800;
+  color: var(--brand); letter-spacing: 0.5px;
+}
+.combo-legs {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+}
+.combo-divider-v { background: var(--border); }
+.combo-leg { padding: 18px 20px; }
+.combo-leg-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.5px;
+  padding: 3px 10px; border-radius: 10px; margin-bottom: 12px;
+}
+.combo-leg-tag.out { background: var(--brand-pale); color: var(--brand); }
+.combo-leg-tag.ret { background: #eff6ff; color: #1d4ed8; }
+.combo-airline-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+}
+.combo-al-logo {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--brand-pale);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.combo-al-name { font-size: 14px; font-weight: 800; color: var(--text-main); }
+.combo-al-no   { font-size: 12px; font-weight: 600; color: var(--text-sub); margin-top: 2px; }
+.combo-timeline {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 12px;
+}
+.combo-time-end { flex: 1; }
+.combo-time-end.right { text-align: right; }
+.combo-t-time {
+  font-size: 26px; font-weight: 900;
+  color: var(--brand-dark); line-height: 1.1;
+}
+.combo-t-airport {
+  font-size: 11px; color: var(--text-sub); margin-top: 3px; line-height: 1.4;
+}
+.combo-t-mid {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  flex-shrink: 0; padding: 0 8px;
+}
+.combo-t-dur { font-size: 10px; color: var(--text-muted); white-space: nowrap; font-weight: 600; }
+.combo-t-line {
+  display: flex; align-items: center; font-size: 13px; color: var(--text-muted);
+}
+.combo-t-line::before, .combo-t-line::after {
+  content: ''; display: block; width: 20px; height: 1px; background: var(--border);
+}
+.combo-bags-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; background: var(--green-pale); border-radius: 8px;
+  margin-bottom: 12px; font-size: 11px; font-weight: 700; color: var(--green);
+}
+.combo-book-btn {
+  width: 100%; padding: 11px 16px;
+  border-radius: var(--radius-sm); border: none;
+  font-size: 13px; font-weight: 800; cursor: pointer;
+  transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.combo-book-btn.out { background: var(--brand); color: #fff; }
+.combo-book-btn.out:hover { background: var(--brand-dark); transform: translateY(-1px); }
+.combo-book-btn.ret { background: #1e40af; color: #fff; }
+.combo-book-btn.ret:hover { background: #1e3a8a; transform: translateY(-1px); }
+
 /* Calendar Strip */
 .cal-section {
   background: var(--surface);
@@ -920,19 +999,23 @@ footer ul li a:hover { color: #fff; }
    DATE PICKER
 ═══════════════════════════════════════════ */
 .datepicker-overlay {
-  position: fixed; inset: 0; z-index: 500;
+  position: fixed; inset: 0; z-index: 800;
   display: none;
+  background: rgba(61,44,30,.45);
+  align-items: center;
+  justify-content: center;
 }
-.datepicker-overlay.open { display: block; }
+.datepicker-overlay.open { display: flex; }
 .datepicker-popup {
-  position: fixed;
+  position: relative;
   background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   padding: 20px;
-  width: 320px;
-  z-index: 600;
+  width: 340px;
+  max-height: 90vh;
+  overflow-y: auto;
   animation: fadeIn .2s ease;
 }
 .dp-header {
@@ -1240,6 +1323,81 @@ footer ul li a:hover { color: #fff; }
         <div class="ai-price-sub">來回含稅 · 1 人</div>
         <div class="ai-save">↓ 省 NT$1,840</div>
         <button class="btn-book-main" onclick="openModal()">🎫 查看詳情</button>
+      </div>
+    </div>
+
+    <!-- Combo Leg Detail -->
+    <div class="combo-detail-wrap" id="comboDetailWrap">
+      <div class="combo-detail-header">✈ AI 推薦組合 — 去回程航班明細</div>
+      <div class="combo-legs">
+
+        <!-- 去程 -->
+        <div class="combo-leg">
+          <div class="combo-leg-tag out">🛫 去程</div>
+          <div class="combo-airline-row">
+            <div class="combo-al-logo" id="cdOutLogo">🌿</div>
+            <div>
+              <div class="combo-al-name" id="cdOutName">長榮航空</div>
+              <div class="combo-al-no"   id="cdOutNo">BR 2198</div>
+            </div>
+          </div>
+          <div class="combo-timeline">
+            <div class="combo-time-end">
+              <div class="combo-t-time"    id="cdOutDepTime">07:30</div>
+              <div class="combo-t-airport" id="cdOutDepApt">台北桃園<br>TPE</div>
+            </div>
+            <div class="combo-t-mid">
+              <div class="combo-t-dur" id="cdOutDur">3h 25m</div>
+              <div class="combo-t-line">✈</div>
+              <div class="combo-t-dur" id="cdOutStops">直飛</div>
+            </div>
+            <div class="combo-time-end right">
+              <div class="combo-t-time"    id="cdOutArrTime">11:55</div>
+              <div class="combo-t-airport" id="cdOutArrApt">東京成田<br>NRT</div>
+            </div>
+          </div>
+          <div class="combo-bags-row" id="cdOutBags">🧳 含 20kg 托運行李 × 1件</div>
+          <button class="combo-book-btn out" id="cdOutBtn"
+            onclick="bookFlight('長榮航空','BR2198')">
+            🎫 長榮航空官網訂票
+          </button>
+        </div>
+
+        <!-- 分隔線 -->
+        <div class="combo-divider-v"></div>
+
+        <!-- 回程 -->
+        <div class="combo-leg">
+          <div class="combo-leg-tag ret">🛬 回程</div>
+          <div class="combo-airline-row">
+            <div class="combo-al-logo" id="cdRetLogo">🌺</div>
+            <div>
+              <div class="combo-al-name" id="cdRetName">中華航空</div>
+              <div class="combo-al-no"   id="cdRetNo">CI 220</div>
+            </div>
+          </div>
+          <div class="combo-timeline">
+            <div class="combo-time-end">
+              <div class="combo-t-time"    id="cdRetDepTime">15:20</div>
+              <div class="combo-t-airport" id="cdRetDepApt">東京成田<br>NRT</div>
+            </div>
+            <div class="combo-t-mid">
+              <div class="combo-t-dur" id="cdRetDur">3h 20m</div>
+              <div class="combo-t-line">✈</div>
+              <div class="combo-t-dur" id="cdRetStops">直飛</div>
+            </div>
+            <div class="combo-time-end right">
+              <div class="combo-t-time"    id="cdRetArrTime">17:40</div>
+              <div class="combo-t-airport" id="cdRetArrApt">台北桃園<br>TPE</div>
+            </div>
+          </div>
+          <div class="combo-bags-row" id="cdRetBags">🧳 含 20kg 托運行李 × 1件</div>
+          <button class="combo-book-btn ret" id="cdRetBtn"
+            onclick="bookFlight('中華航空','CI220')">
+            🎫 中華航空官網訂票
+          </button>
+        </div>
+
       </div>
     </div>
 
@@ -1709,28 +1867,15 @@ let tempSel = null;  // while picker is open
 const today = new Date();
 
 function openDatePicker(mode, anchorEl) {
-  dpMode    = mode;
+  dpMode     = mode;
   dpAnchorEl = anchorEl;
-  tempSel   = mode === 'dep' ? {...selDep} : {...selRet};
+  tempSel    = mode === 'dep' ? {...selDep} : {...selRet};
 
-  // Start calendar on relevant month
+  // 從選擇的日期所在月份開始顯示
   dpYear  = tempSel.y;
   dpMonth = tempSel.m;
 
-  // Position popup under the clicked field (fixed coords)
-  const rect = anchorEl.getBoundingClientRect();
-  const popup = document.getElementById('dpPopup');
-  const spaceBelow = window.innerHeight - rect.bottom - 8;
-  if (spaceBelow < 200) {
-    popup.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
-    popup.style.top = 'auto';
-  } else {
-    popup.style.top  = (rect.bottom + 6) + 'px';
-    popup.style.bottom = 'auto';
-  }
-  popup.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 330)) + 'px';
-
-  // Mark field active
+  // 標記 active（樣式用）
   document.querySelectorAll('.s-field').forEach(f => f.classList.remove('active-field'));
   anchorEl.classList.add('active-field');
 
@@ -1746,29 +1891,7 @@ function closeDatePicker(e) {
   }
 }
 
-// ── 滾動時重新定位 date picker popup ──
-function repositionDpPopup() {
-  if (!dpAnchorEl) return;
-  const overlay = document.getElementById('dpOverlay');
-  if (!overlay.classList.contains('open')) return;
-  const rect = dpAnchorEl.getBoundingClientRect();
-  if (rect.bottom < 56 || rect.top > window.innerHeight) {
-    closeDatePicker();
-    return;
-  }
-  const popup  = document.getElementById('dpPopup');
-  const left   = Math.min(rect.left, window.innerWidth - 340);
-  const spaceBelow = window.innerHeight - rect.bottom - 8;
-  if (spaceBelow < 320) {
-    popup.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
-    popup.style.top = 'auto';
-  } else {
-    popup.style.top  = (rect.bottom + 6) + 'px';
-    popup.style.bottom = 'auto';
-  }
-  popup.style.left = Math.max(8, left) + 'px';
-}
-window.addEventListener('scroll', repositionDpPopup, { passive: true });
+// date picker 改為置中 modal，不再需要 scroll 重定位
 
 function dpChangeMonth(delta) {
   dpMonth += delta;
@@ -2485,6 +2608,16 @@ function renderRealFlights(flights, origin, dest) {
       <div class="ai-price">NT$${price.toLocaleString()}</div>`;
   }
 
+  // 更新去回程明細卡
+  const outF = flights[0];
+  const retSrc = flights.length > 1 ? flights[1] : flights[0];
+  const retF = Object.assign({}, retSrc, {
+    price: Math.round(retSrc.price * 0.92),
+    depart: retSrc.returnAt || retSrc.depart,
+    returnAt: retSrc.depart
+  });
+  updateComboDetail(outF, retF, origin, dest);
+
   // 渲染去程航班
   const outEl = document.getElementById('outFlights');
   outEl.innerHTML = '';
@@ -2501,6 +2634,53 @@ function renderRealFlights(flights, origin, dest) {
     });
     renderFlightCard(retF, dest, origin, 'ret', retEl);
   });
+}
+
+function updateComboDetail(outF, retF, origin, dest) {
+  function fmtTime(iso) {
+    if (!iso) return '--:--';
+    try { const d = new Date(iso); if (!isNaN(d)) return d.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}); } catch(e){}
+    return '--:--';
+  }
+  function stopsLabel(f) { return f.transfers === 0 ? '直飛' : f.transfers + '次轉機'; }
+  function bagsLabel(f)  { return f.transfers === 0 ? '🧳 含 20kg 托運行李 × 1件' : '🧳 請至官網確認行李方案'; }
+
+  const outName = AIRLINE_CODES[outF.airline] || outF.airline || '未知航空';
+  const retName = AIRLINE_CODES[retF.airline] || retF.airline || '未知航空';
+  const outLogo = AIRLINE_LOGOS[outF.airline] || '✈';
+  const retLogo = AIRLINE_LOGOS[retF.airline] || '✈';
+  const outNo   = outF.flightNo ? outF.airline + ' ' + outF.flightNo : outF.airline || '';
+  const retNo   = retF.flightNo ? retF.airline + ' ' + retF.flightNo : retF.airline || '';
+  const fromCity = selFrom ? selFrom.city : origin;
+  const toCity   = selTo   ? selTo.city   : dest;
+
+  // 去程
+  document.getElementById('cdOutLogo').textContent    = outLogo;
+  document.getElementById('cdOutName').textContent    = outName;
+  document.getElementById('cdOutNo').textContent      = outNo;
+  document.getElementById('cdOutDepTime').textContent = fmtTime(outF.depart);
+  document.getElementById('cdOutDepApt').innerHTML    = fromCity + '<br>' + origin;
+  document.getElementById('cdOutArrTime').textContent = '--:--';
+  document.getElementById('cdOutArrApt').innerHTML    = toCity + '<br>' + dest;
+  document.getElementById('cdOutDur').textContent     = stopsLabel(outF);
+  document.getElementById('cdOutStops').textContent   = '';
+  document.getElementById('cdOutBags').innerHTML      = bagsLabel(outF);
+  document.getElementById('cdOutBtn').textContent     = '🎫 ' + outName + '官網訂票';
+  document.getElementById('cdOutBtn').onclick         = () => bookFlight(outName, outF.flightNo || '');
+
+  // 回程
+  document.getElementById('cdRetLogo').textContent    = retLogo;
+  document.getElementById('cdRetName').textContent    = retName;
+  document.getElementById('cdRetNo').textContent      = retNo;
+  document.getElementById('cdRetDepTime').textContent = fmtTime(retF.depart);
+  document.getElementById('cdRetDepApt').innerHTML    = toCity + '<br>' + dest;
+  document.getElementById('cdRetArrTime').textContent = '--:--';
+  document.getElementById('cdRetArrApt').innerHTML    = fromCity + '<br>' + origin;
+  document.getElementById('cdRetDur').textContent     = stopsLabel(retF);
+  document.getElementById('cdRetStops').textContent   = '';
+  document.getElementById('cdRetBags').innerHTML      = bagsLabel(retF);
+  document.getElementById('cdRetBtn').textContent     = '🎫 ' + retName + '官網訂票';
+  document.getElementById('cdRetBtn').onclick         = () => bookFlight(retName, retF.flightNo || '');
 }
 
 function renderFlightCard(f, fromCode, toCode, dir, container) {
