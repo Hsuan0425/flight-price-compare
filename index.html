@@ -1,0 +1,2671 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅遊趣 — 機票比價，一比就知道</title>
+<style>
+/* ═══════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, 'Noto Sans TC', 'Segoe UI', sans-serif;
+  background: #fffaf5;
+  color: #3d2c1e;
+  min-height: 100vh;
+}
+a { text-decoration: none; color: inherit; }
+button { cursor: pointer; font-family: inherit; }
+input, select { font-family: inherit; }
+
+/* ═══════════════════════════════════════════
+   COLOUR TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --brand:       #c2410c;
+  --brand-dark:  #9a3412;
+  --brand-light: #fed7aa;
+  --brand-pale:  #fff7ed;
+  --accent:      #f59e0b;
+  --accent-pale: #fef9c3;
+  --green:       #16a34a;
+  --green-pale:  #dcfce7;
+  --surface:     #ffffff;
+  --border:      #f0e8d8;
+  --text-main:   #3d2c1e;
+  --text-sub:    #9a6c4a;
+  --text-muted:  #c4a882;
+  --shadow-sm:   0 2px 8px rgba(194,65,12,.08);
+  --shadow-md:   0 4px 20px rgba(194,65,12,.12);
+  --shadow-lg:   0 8px 40px rgba(194,65,12,.16);
+  --radius-sm:   8px;
+  --radius-md:   14px;
+  --radius-lg:   22px;
+}
+
+/* ═══════════════════════════════════════════
+   NAVBAR
+═══════════════════════════════════════════ */
+.navbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--brand);
+  letter-spacing: -0.5px;
+}
+.nav-logo .logo-icon {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--brand), var(--accent));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  color: #fff;
+}
+.nav-links { display: flex; gap: 4px; margin-left: 8px; }
+.nav-link {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sub);
+  transition: all .2s;
+  border: none; background: transparent;
+}
+.nav-link:hover, .nav-link.active {
+  background: var(--brand-pale);
+  color: var(--brand);
+}
+.nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.nav-alert-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  border: 1.5px solid var(--brand-light);
+  border-radius: 20px;
+  font-size: 12px; font-weight: 600;
+  color: var(--brand);
+  background: var(--brand-pale);
+  transition: all .2s;
+}
+.nav-alert-btn:hover { background: var(--brand-light); }
+.nav-login {
+  padding: 7px 18px;
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+  transition: background .2s;
+}
+.nav-login:hover { background: var(--brand-dark); }
+
+/* ═══════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════ */
+.hero {
+  background: linear-gradient(160deg, #fff7ed 0%, #fed7aa 45%, #fdba74 100%);
+  padding: 48px 32px 72px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: -60px; right: -60px;
+  width: 300px; height: 300px;
+  background: rgba(255,255,255,.25);
+  border-radius: 50%;
+}
+.hero::after {
+  content: '';
+  position: absolute; bottom: -80px; left: 10%;
+  width: 200px; height: 200px;
+  background: rgba(255,255,255,.15);
+  border-radius: 50%;
+}
+.hero-content { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+.hero-eyebrow {
+  font-size: 12px; font-weight: 700;
+  color: var(--brand); letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.hero h1 {
+  font-size: 38px; font-weight: 900;
+  color: var(--brand-dark);
+  letter-spacing: -1px;
+  line-height: 1.15;
+  margin-bottom: 6px;
+}
+.hero h1 span { color: var(--brand); }
+.hero-sub {
+  font-size: 15px; color: var(--brand);
+  opacity: .8; margin-bottom: 28px;
+}
+
+/* Search Box */
+.search-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-lg);
+}
+.trip-tabs {
+  display: flex; gap: 6px; margin-bottom: 18px;
+}
+.trip-tab {
+  padding: 7px 18px;
+  border-radius: 20px;
+  font-size: 13px; font-weight: 600;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-sub);
+  transition: all .2s;
+}
+.trip-tab.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.trip-tab:hover:not(.active) {
+  border-color: var(--brand-light);
+  color: var(--brand);
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: 1fr 42px 1fr 160px 160px 100px 130px;
+  gap: 8px;
+  align-items: center;
+}
+.search-row.oneway {
+  grid-template-columns: 1fr 42px 1fr 160px 100px 130px;
+}
+.s-field {
+  background: var(--brand-pale);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 11px 14px;
+  transition: border-color .2s, box-shadow .2s;
+  cursor: pointer;
+}
+.s-field:hover { border-color: var(--brand-light); }
+.s-field:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(194,65,12,.1); }
+.s-field label {
+  display: block;
+  font-size: 10px; font-weight: 700;
+  color: var(--brand); letter-spacing: .8px;
+  text-transform: uppercase; margin-bottom: 3px;
+}
+.s-field input, .s-field select {
+  width: 100%; border: none; background: transparent;
+  font-size: 14px; font-weight: 700; color: var(--text-main);
+  outline: none;
+}
+.s-field .s-val {
+  font-size: 14px; font-weight: 700; color: var(--text-main);
+}
+.s-field .s-sub {
+  font-size: 10px; color: var(--text-muted); margin-top: 1px;
+}
+.swap-btn {
+  width: 38px; height: 38px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--brand);
+  transition: all .2s;
+  justify-self: center;
+}
+.swap-btn:hover {
+  background: var(--brand-pale);
+  border-color: var(--brand-light);
+  transform: rotate(180deg);
+}
+.btn-search-main {
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 10px;
+  font-size: 15px; font-weight: 800;
+  letter-spacing: .3px;
+  transition: all .2s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-search-main:hover {
+  background: var(--brand-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.search-hints {
+  display: flex; gap: 16px; margin-top: 12px; flex-wrap: wrap;
+}
+.hint-tag {
+  font-size: 12px; color: var(--text-sub);
+  display: flex; align-items: center; gap: 4px;
+  cursor: pointer;
+}
+.hint-tag:hover { color: var(--brand); }
+
+/* ═══════════════════════════════════════════
+   MAIN CONTENT LAYOUT
+═══════════════════════════════════════════ */
+.main-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* ═══════════════════════════════════════════
+   SIDEBAR FILTERS
+═══════════════════════════════════════════ */
+.sidebar { display: flex; flex-direction: column; gap: 16px; }
+.filter-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+.filter-card h3 {
+  font-size: 12px; font-weight: 800;
+  color: var(--brand); text-transform: uppercase;
+  letter-spacing: .8px; margin-bottom: 12px;
+}
+.filter-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--border);
+  font-size: 13px;
+}
+.filter-row:last-child { border-bottom: none; }
+.filter-row label { color: var(--text-main); cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.filter-row .cnt { font-size: 11px; color: var(--text-muted); }
+.f-check {
+  width: 16px; height: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  background: var(--brand-pale);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: all .2s;
+}
+.f-check:checked {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.f-check:checked::after {
+  content: '✓';
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #fff; font-weight: 800;
+  width: 100%; height: 100%;
+}
+
+/* Price range slider */
+.range-wrap { margin-top: 6px; }
+.range-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-sub); margin-bottom: 4px; }
+input[type=range] {
+  width: 100%; accent-color: var(--brand);
+  height: 4px; border-radius: 2px;
+}
+
+/* Alert card in sidebar */
+.alert-card {
+  background: linear-gradient(135deg, #fff7ed, #fed7aa);
+  border: 1.5px solid var(--brand-light);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+.alert-card h3 { font-size: 13px; font-weight: 800; color: var(--brand-dark); margin-bottom: 6px; }
+.alert-card p { font-size: 12px; color: var(--text-sub); line-height: 1.6; margin-bottom: 10px; }
+.alert-input {
+  width: 100%;
+  border: 1.5px solid var(--brand-light);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 13px; color: var(--text-main);
+  background: var(--surface);
+  margin-bottom: 8px;
+  outline: none;
+}
+.alert-input:focus { border-color: var(--brand); }
+.btn-alert {
+  width: 100%;
+  background: var(--brand);
+  color: #fff; border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px;
+  font-size: 13px; font-weight: 700;
+}
+.btn-alert:hover { background: var(--brand-dark); }
+
+/* ═══════════════════════════════════════════
+   RESULTS AREA
+═══════════════════════════════════════════ */
+.results-area { display: flex; flex-direction: column; gap: 20px; }
+.result-header {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.result-title { font-size: 17px; font-weight: 800; color: var(--brand-dark); }
+.result-count { font-size: 13px; color: var(--text-muted); }
+.sort-row { margin-left: auto; display: flex; gap: 6px; }
+.sort-btn {
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 12px; font-weight: 600;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-sub);
+  transition: all .2s;
+}
+.sort-btn.active {
+  background: var(--brand-pale);
+  border-color: var(--brand-light);
+  color: var(--brand);
+}
+.sort-btn:hover:not(.active) { border-color: var(--brand-light); color: var(--brand); }
+
+/* AI Best Deal Banner */
+.ai-banner {
+  background: linear-gradient(135deg, #fff7ed, #fef3c7);
+  border: 2px solid var(--brand-light);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.ai-banner::before {
+  content: '';
+  position: absolute; top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  background: rgba(194,65,12,.06);
+  border-radius: 50%;
+}
+.ai-icon {
+  width: 48px; height: 48px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--brand), var(--accent));
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+.ai-body { flex: 1; position: relative; }
+.ai-badge {
+  display: inline-block;
+  background: var(--brand);
+  color: #fff;
+  font-size: 10px; font-weight: 800;
+  padding: 3px 10px; border-radius: 10px;
+  letter-spacing: 1px; margin-bottom: 6px;
+}
+.ai-title {
+  font-size: 17px; font-weight: 800; color: var(--brand-dark);
+  margin-bottom: 4px;
+}
+.ai-desc { font-size: 12px; color: var(--text-sub); line-height: 1.6; }
+.ai-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.ai-tag {
+  font-size: 11px; font-weight: 600;
+  padding: 3px 10px; border-radius: 10px;
+}
+.ai-tag.green { background: var(--green-pale); color: var(--green); }
+.ai-tag.orange { background: var(--accent-pale); color: #b45309; }
+.ai-tag.red { background: #fee2e2; color: #dc2626; }
+.ai-price-col { text-align: right; flex-shrink: 0; }
+.ai-price { font-size: 30px; font-weight: 900; color: var(--brand-dark); line-height: 1; }
+.ai-price-sub { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+.ai-save { font-size: 12px; color: var(--green); font-weight: 700; margin-bottom: 8px; }
+.btn-book-main {
+  background: var(--brand);
+  color: #fff; border: none;
+  border-radius: var(--radius-md);
+  padding: 10px 20px;
+  font-size: 13px; font-weight: 800;
+  display: flex; align-items: center; gap: 6px;
+  transition: all .2s;
+}
+.btn-book-main:hover { background: var(--brand-dark); transform: translateY(-1px); }
+
+/* Calendar Strip */
+.cal-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+}
+.cal-section-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+}
+.cal-section-header h3 { font-size: 14px; font-weight: 800; color: var(--brand-dark); }
+.cal-section-header .month-nav {
+  margin-left: auto; display: flex; gap: 4px;
+}
+.mnav-btn {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-sub); font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.mnav-btn:hover { background: var(--brand-pale); color: var(--brand); border-color: var(--brand-light); }
+.cal-legend { display: flex; gap: 12px; font-size: 11px; color: var(--text-muted); margin-bottom: 10px; align-items: center; }
+.cal-legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+.cal-grid-header {
+  display: grid; grid-template-columns: repeat(7,1fr);
+  gap: 4px; margin-bottom: 4px;
+}
+.cal-grid-header span {
+  text-align: center; font-size: 10px;
+  font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; padding: 4px 0;
+}
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7,1fr); gap: 4px;
+}
+.cal-cell {
+  border-radius: var(--radius-sm);
+  padding: 7px 4px;
+  text-align: center; cursor: pointer;
+  transition: all .15s;
+  border: 1.5px solid transparent;
+}
+.cal-cell .c-day { font-size: 12px; font-weight: 700; color: var(--text-main); }
+.cal-cell .c-price { font-size: 10px; margin-top: 2px; }
+.cal-cell.low { background: #f0fdf4; }
+.cal-cell.low .c-price { color: var(--green); font-weight: 700; }
+.cal-cell.mid { background: var(--brand-pale); }
+.cal-cell.mid .c-price { color: var(--text-sub); }
+.cal-cell.high { background: #fff7f0; }
+.cal-cell.high .c-price { color: #ea580c; }
+.cal-cell.disabled { opacity: .35; cursor: default; pointer-events: none; }
+.cal-cell:hover:not(.selected):not(.disabled) {
+  border-color: var(--brand-light);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+.cal-cell.selected {
+  background: var(--brand);
+  border-color: var(--brand-dark);
+}
+.cal-cell.selected .c-day,
+.cal-cell.selected .c-price { color: #fff; }
+
+/* Flight Cards */
+.flight-section-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
+}
+.flight-section-header h3 { font-size: 14px; font-weight: 800; color: var(--brand-dark); }
+.flight-section-header .toggle-view {
+  margin-left: auto; font-size: 11px; color: var(--brand);
+  font-weight: 600; cursor: pointer;
+}
+.flight-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 16px;
+  cursor: pointer;
+  transition: all .2s;
+  margin-bottom: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.flight-card::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: transparent;
+  transition: background .2s;
+}
+.flight-card:hover {
+  border-color: var(--brand-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.flight-card:hover::before { background: var(--brand); }
+.flight-card.recommended {
+  border-color: var(--brand-light);
+  background: linear-gradient(to right, #fff7ed, var(--surface));
+}
+.flight-card.recommended::before { background: var(--brand); }
+.airline-logo {
+  width: 42px; height: 42px; flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--brand-pale);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.flight-info { flex: 1; min-width: 0; }
+.flight-times {
+  font-size: 20px; font-weight: 800; color: var(--text-main);
+  line-height: 1; margin-bottom: 4px;
+}
+.flight-times .arrow {
+  font-size: 14px; color: var(--text-muted);
+  margin: 0 6px;
+}
+.flight-meta {
+  font-size: 11px; color: var(--text-muted);
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.flight-meta span { display: flex; align-items: center; gap: 3px; }
+.flight-duration {
+  text-align: center; min-width: 80px;
+}
+.flight-duration .dur-line {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-muted); margin-bottom: 4px;
+}
+.dur-dash { flex: 1; border-top: 1px dashed var(--border); }
+.flight-duration .dur-label { font-size: 11px; color: var(--text-muted); }
+.flight-badges { display: flex; flex-direction: column; gap: 4px; min-width: 90px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 10px; font-weight: 700;
+  padding: 3px 8px; border-radius: 8px;
+}
+.badge.lowest   { background: var(--green-pale); color: var(--green); }
+.badge.recmd    { background: var(--accent-pale); color: #b45309; }
+.badge.budget   { background: #f3e8ff; color: #7c3aed; }
+.badge.direct   { background: #dbeafe; color: #1d4ed8; }
+.badge.baggage  { background: var(--brand-pale); color: var(--brand); }
+.flight-price { text-align: right; flex-shrink: 0; }
+.flight-price .price { font-size: 22px; font-weight: 900; color: var(--brand-dark); }
+.flight-price .price-sub { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+.flight-price .price-note { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+.btn-select {
+  margin-top: 8px;
+  background: var(--brand);
+  color: #fff; border: none;
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  font-size: 12px; font-weight: 700;
+  transition: all .2s;
+}
+.btn-select:hover { background: var(--brand-dark); }
+.btn-select.outline {
+  background: transparent;
+  border: 1.5px solid var(--brand-light);
+  color: var(--brand);
+}
+.btn-select.outline:hover { background: var(--brand-pale); }
+
+/* Expand / Collapse */
+.show-more-btn {
+  width: 100%;
+  background: transparent;
+  border: 1.5px dashed var(--brand-light);
+  border-radius: var(--radius-md);
+  padding: 11px;
+  font-size: 13px; font-weight: 700;
+  color: var(--brand);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all .2s;
+  margin-bottom: 8px;
+}
+.show-more-btn:hover { background: var(--brand-pale); }
+
+/* ═══════════════════════════════════════════
+   PRICE TREND CHART AREA
+═══════════════════════════════════════════ */
+.trend-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+}
+.trend-section h3 { font-size: 14px; font-weight: 800; color: var(--brand-dark); margin-bottom: 14px; }
+.trend-chart { width: 100%; height: 80px; position: relative; }
+.trend-chart svg { width: 100%; height: 100%; }
+.trend-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+.buy-signal {
+  margin-top: 10px;
+  background: var(--green-pale);
+  border: 1px solid #86efac;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 12px; color: #15803d; font-weight: 600;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* ═══════════════════════════════════════════
+   POPULAR ROUTES
+═══════════════════════════════════════════ */
+.popular-section {
+  max-width: 1100px;
+  margin: 0 auto 40px;
+  padding: 0 24px;
+}
+.popular-section h2 {
+  font-size: 20px; font-weight: 900; color: var(--brand-dark);
+  margin-bottom: 16px;
+}
+.route-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.route-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all .2s;
+}
+.route-card:hover {
+  border-color: var(--brand-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+.route-card-img {
+  height: 90px;
+  background: linear-gradient(135deg, #fed7aa, #fbbf24);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px;
+  position: relative;
+}
+.route-card-img .r-flag { font-size: 28px; }
+.route-card-body { padding: 12px; }
+.route-city { font-size: 15px; font-weight: 800; color: var(--text-main); }
+.route-code { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+.route-price-row { display: flex; align-items: center; justify-content: space-between; }
+.route-price { font-size: 16px; font-weight: 900; color: var(--brand); }
+.route-price-label { font-size: 10px; color: var(--text-muted); }
+.route-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 8px; background: var(--brand-pale); color: var(--brand); }
+
+/* ═══════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════ */
+footer {
+  background: var(--brand-dark);
+  color: rgba(255,255,255,.8);
+  padding: 36px 32px;
+}
+.footer-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 32px;
+}
+footer h4 { font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 12px; letter-spacing: .3px; }
+footer ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+footer ul li a { font-size: 12px; color: rgba(255,255,255,.6); transition: color .2s; }
+footer ul li a:hover { color: #fff; }
+.footer-logo { font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 8px; }
+.footer-desc { font-size: 12px; color: rgba(255,255,255,.55); line-height: 1.7; }
+.footer-bottom {
+  max-width: 1100px; margin: 24px auto 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255,255,255,.1);
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; color: rgba(255,255,255,.4);
+}
+
+/* ═══════════════════════════════════════════
+   MODAL (flight detail)
+═══════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 999;
+  display: none; align-items: center; justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  width: 540px; max-width: 95vw;
+  max-height: 85vh; overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0,0,0,.25);
+}
+.modal-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.modal-header h2 { font-size: 18px; font-weight: 800; color: var(--brand-dark); flex: 1; }
+.modal-close {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 16px; display: flex; align-items: center; justify-content: center;
+}
+.modal-close:hover { background: var(--brand-pale); color: var(--brand); }
+.detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border); font-size: 13px; }
+.detail-row:last-child { border-bottom: none; }
+.detail-row .key { color: var(--text-sub); }
+.detail-row .val { font-weight: 700; color: var(--text-main); }
+.fee-breakdown { background: var(--brand-pale); border-radius: var(--radius-sm); padding: 12px; margin: 12px 0; }
+.fee-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; }
+.fee-total { font-weight: 800; font-size: 15px; color: var(--brand); border-top: 1.5px solid var(--brand-light); margin-top: 4px; padding-top: 6px; }
+
+/* ═══════════════════════════════════════════
+   DEMO PRICE BANNER
+═══════════════════════════════════════════ */
+.demo-banner {
+  background: #fef9c3;
+  border-bottom: 1px solid #fde047;
+  padding: 7px 32px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px; color: #854d0e;
+}
+.demo-banner strong { font-weight: 700; }
+.demo-banner a { color: #92400e; text-decoration: underline; cursor: pointer; }
+.api-live-banner {
+  background: #dcfce7; border-bottom: 1px solid #86efac;
+  padding: 7px 32px; display: flex; align-items: center; gap: 10px;
+  font-size: 12px; color: #15803d;
+}
+.api-live-banner strong { font-weight: 700; }
+
+/* ═══════════════════════════════════════════
+   API SETTINGS MODAL
+═══════════════════════════════════════════ */
+.api-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  z-index: 1200; display: none; align-items: center; justify-content: center;
+  backdrop-filter: blur(3px);
+}
+.api-modal-overlay.open { display: flex; }
+.api-modal {
+  background: #fff; border-radius: 20px; padding: 28px;
+  width: 480px; max-width: 95vw;
+  box-shadow: 0 24px 80px rgba(0,0,0,.2);
+}
+.api-modal h2 { font-size: 18px; font-weight: 800; color: #9a3412; margin-bottom: 6px; }
+.api-modal .api-sub { font-size: 12px; color: #9a6c4a; margin-bottom: 20px; line-height: 1.6; }
+.api-field { margin-bottom: 14px; }
+.api-field label { display: block; font-size: 11px; font-weight: 700; color: #c2410c; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 5px; }
+.api-field input {
+  width: 100%; border: 1.5px solid #f0e8d8; border-radius: 10px;
+  padding: 10px 12px; font-size: 13px; font-family: monospace;
+  color: #3d2c1e; background: #fff7ed; outline: none; transition: border-color .2s;
+}
+.api-field input:focus { border-color: #c2410c; background: #fff; }
+.api-btn-row { display: flex; gap: 8px; margin-top: 18px; }
+.api-save-btn {
+  flex: 1; background: #c2410c; color: #fff; border: none;
+  border-radius: 10px; padding: 11px; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: background .2s;
+}
+.api-save-btn:hover { background: #9a3412; }
+.api-cancel-btn {
+  padding: 11px 18px; border: 1.5px solid #f0e8d8; border-radius: 10px;
+  background: transparent; font-size: 13px; color: #9a6c4a; cursor: pointer;
+}
+.api-status { margin-top: 12px; padding: 9px 12px; border-radius: 8px; font-size: 12px; display: none; }
+.api-status.ok { background: #dcfce7; color: #15803d; display: block; }
+.api-status.err { background: #fee2e2; color: #dc2626; display: block; }
+.api-hint { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 10px 12px; font-size: 11px; color: #92400e; margin-bottom: 14px; line-height: 1.6; }
+.api-hint a { color: #c2410c; font-weight: 700; }
+
+/* Loading spinner overlay */
+.search-loading {
+  display: none; position: fixed; inset: 0;
+  background: rgba(255,247,237,.85); z-index: 900;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px;
+  backdrop-filter: blur(2px);
+}
+.search-loading.show { display: flex; }
+.spinner { width: 44px; height: 44px; border: 4px solid #fed7aa; border-top-color: #c2410c; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 15px; font-weight: 700; color: #9a3412; }
+.loading-sub  { font-size: 12px; color: #9a6c4a; }
+
+/* ═══════════════════════════════════════════
+   AIRPORT PICKER
+═══════════════════════════════════════════ */
+.ap-overlay {
+  position: fixed; inset: 0; z-index: 700; display: none;
+}
+.ap-overlay.open { display: block; }
+.ap-popup {
+  position: fixed;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 380px;
+  max-height: 420px;
+  display: flex; flex-direction: column;
+  z-index: 800;
+  animation: fadeIn .18s ease;
+  overflow: hidden;
+}
+.ap-search-wrap {
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.ap-search-input {
+  width: 100%;
+  border: 1.5px solid var(--brand-light);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px 9px 34px;
+  font-size: 14px; color: var(--text-main);
+  background: var(--brand-pale);
+  outline: none;
+  transition: border-color .2s;
+}
+.ap-search-input:focus { border-color: var(--brand); background: #fff; }
+.ap-search-icon {
+  position: absolute; left: 22px;
+  top: 50%; transform: translateY(-50%);
+  font-size: 15px; color: var(--text-muted);
+  pointer-events: none;
+}
+.ap-search-wrap { position: relative; }
+.ap-list {
+  overflow-y: auto; flex: 1;
+  padding: 8px 0;
+}
+.ap-list::-webkit-scrollbar { width: 4px; }
+.ap-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.ap-region-label {
+  padding: 6px 14px 4px;
+  font-size: 10px; font-weight: 800;
+  color: var(--brand); text-transform: uppercase;
+  letter-spacing: 1px;
+  background: var(--brand-pale);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-top: 4px;
+  position: sticky; top: 0;
+}
+.ap-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: background .12s;
+  border-bottom: 1px solid #fdf5ec;
+}
+.ap-item:hover, .ap-item.selected { background: var(--brand-pale); }
+.ap-item.selected .ap-code { color: var(--brand); }
+.ap-code {
+  font-size: 14px; font-weight: 800;
+  color: var(--text-sub); min-width: 38px;
+}
+.ap-info { flex: 1; min-width: 0; }
+.ap-city { font-size: 13px; font-weight: 700; color: var(--text-main); }
+.ap-name { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ap-country { font-size: 12px; }
+.ap-hot { font-size: 9px; background: var(--brand); color: #fff; padding: 1px 6px; border-radius: 6px; font-weight: 700; margin-left: 2px; }
+.ap-no-result { padding: 24px; text-align: center; font-size: 13px; color: var(--text-muted); }
+
+/* ═══════════════════════════════════════════
+   DATE PICKER
+═══════════════════════════════════════════ */
+.datepicker-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  display: none;
+}
+.datepicker-overlay.open { display: block; }
+.datepicker-popup {
+  position: fixed;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 20px;
+  width: 320px;
+  z-index: 600;
+  animation: fadeIn .2s ease;
+}
+.dp-header {
+  display: flex; align-items: center;
+  margin-bottom: 16px; gap: 8px;
+}
+.dp-header h4 {
+  font-size: 14px; font-weight: 800;
+  color: var(--brand-dark); flex: 1; text-align: center;
+}
+.dp-nav {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-sub); font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s; flex-shrink: 0;
+}
+.dp-nav:hover { background: var(--brand-pale); color: var(--brand); border-color: var(--brand-light); }
+.dp-dow-row {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 3px; margin-bottom: 4px;
+}
+.dp-dow-row span {
+  text-align: center; font-size: 10px; font-weight: 700;
+  color: var(--text-muted); padding: 4px 0;
+  text-transform: uppercase;
+}
+.dp-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+}
+.dp-cell {
+  aspect-ratio: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px; font-weight: 600;
+  color: var(--text-main);
+  border: 1.5px solid transparent;
+  transition: all .15s;
+  position: relative;
+}
+.dp-cell:hover:not(.dp-disabled):not(.dp-selected):not(.dp-other) {
+  background: var(--brand-pale); border-color: var(--brand-light); color: var(--brand);
+}
+.dp-cell.dp-today { border-color: var(--brand-light); color: var(--brand); }
+.dp-cell.dp-selected {
+  background: var(--brand); color: #fff; border-color: var(--brand-dark);
+}
+.dp-cell.dp-in-range { background: var(--brand-pale); border-radius: 0; }
+.dp-cell.dp-range-start { background: var(--brand); color: #fff; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.dp-cell.dp-range-end { background: var(--brand); color: #fff; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.dp-cell.dp-disabled { opacity: .3; cursor: default; pointer-events: none; }
+.dp-cell.dp-other { color: var(--text-muted); background: transparent; cursor: default; pointer-events: none; }
+.dp-price-dot {
+  font-size: 8px; font-weight: 700; margin-top: 1px;
+  line-height: 1;
+}
+.dp-price-dot.low { color: var(--green); }
+.dp-price-dot.mid { color: var(--text-muted); }
+.dp-price-dot.high { color: #ea580c; }
+.dp-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.dp-footer .dp-selected-info { font-size: 12px; color: var(--text-sub); }
+.dp-footer .dp-selected-info strong { color: var(--brand-dark); font-size: 13px; }
+.dp-confirm {
+  background: var(--brand); color: #fff; border: none;
+  border-radius: var(--radius-sm); padding: 7px 16px;
+  font-size: 12px; font-weight: 700;
+  transition: background .2s;
+}
+.dp-confirm:hover { background: var(--brand-dark); }
+.s-field.active-field { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(194,65,12,.12); }
+.s-field.has-date .s-val { color: var(--brand-dark); }
+
+/* ═══════════════════════════════════════════
+   UTILITY
+═══════════════════════════════════════════ */
+.section-label {
+  font-size: 11px; font-weight: 700;
+  color: var(--brand); text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 10px;
+}
+.divider { height: 1px; background: var(--border); margin: 4px 0; }
+.fade-in { animation: fadeIn .3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+  background: var(--brand-dark);
+  color: #fff;
+  padding: 12px 24px; border-radius: 30px;
+  font-size: 13px; font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0,0,0,.2);
+  z-index: 9999;
+  transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ NAVBAR ══════════════ -->
+<nav class="navbar">
+  <div class="nav-logo">
+    <div class="logo-icon">✈</div>
+    旅遊趣
+  </div>
+  <div class="nav-links">
+    <button class="nav-link active">🎫 機票</button>
+    <button class="nav-link">🏨 飯店</button>
+    <button class="nav-link">🚗 租車</button>
+    <button class="nav-link">📦 套裝</button>
+  </div>
+  <div class="nav-right">
+    <button class="nav-alert-btn" onclick="scrollToAlert()">🔔 降價通知</button>
+    <button class="nav-alert-btn" onclick="openApiModal()" id="apiNavBtn" style="border-color:#fed7aa;">⚙ API 設定</button>
+    <button class="nav-login">登入 / 註冊</button>
+  </div>
+</nav>
+
+<!-- ══════════════ PRICE STATUS BANNER ══════════════ -->
+<div id="demoBanner" class="demo-banner">
+  <span>⚠️</span>
+  <span><strong>模擬資料模式：</strong>目前顯示模擬票價。點右上角 <strong>⚙ API 設定</strong> 確認 Travelpayouts Token，即可切換為真實即時票價。</span>
+</div>
+<div id="liveBanner" class="api-live-banner" style="display:none;">
+  <span>🟢</span>
+  <span><strong>即時票價模式：</strong>已連線 Travelpayouts API，按下搜尋即可取得真實票價。</span>
+</div>
+
+<!-- ══════════════ HERO ══════════════ -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-eyebrow">✈ 機票比價平台</div>
+    <h1>去哪玩？<span>比一下就知道</span></h1>
+    <p class="hero-sub">整合長榮、華航、星宇、虎航等 20+ 航空，找最優來回組合</p>
+
+    <div class="search-card">
+      <!-- Trip Type Tabs -->
+      <div class="trip-tabs">
+        <button class="trip-tab active" onclick="setTripType('roundtrip', this)">🔄 來回票</button>
+        <button class="trip-tab" onclick="setTripType('oneway', this)">➡️ 單程</button>
+        <button class="trip-tab" onclick="setTripType('multi', this)">🗺️ 多城市</button>
+      </div>
+
+      <!-- Search Row -->
+      <div class="search-row" id="searchRow">
+        <div class="s-field has-date" id="fromField" onclick="openAirportPicker('from', this)" style="cursor:pointer;">
+          <label>出發地</label>
+          <div class="s-val" id="fromVal">台北 (TPE)</div>
+          <div class="s-sub" id="fromSub">桃園國際機場</div>
+        </div>
+        <button class="swap-btn" onclick="swapCities()" title="對調出發地與目的地">⇄</button>
+        <div class="s-field has-date" id="toField" onclick="openAirportPicker('to', this)" style="cursor:pointer;">
+          <label>目的地</label>
+          <div class="s-val" id="destVal">東京 (TYO)</div>
+          <div class="s-sub" id="destSub">成田 / 羽田</div>
+        </div>
+        <div class="s-field has-date" id="depField" onclick="openDatePicker('dep', this)" style="cursor:pointer;">
+          <label>去程日期</label>
+          <div class="s-val" id="depDate">2026 年 7 月 18 日</div>
+          <div class="s-sub" id="depSub">週六</div>
+        </div>
+        <div class="s-field has-date" id="retDateField" onclick="openDatePicker('ret', this)" style="cursor:pointer;">
+          <label>回程日期</label>
+          <div class="s-val" id="retDate">2026 年 7 月 25 日</div>
+          <div class="s-sub" id="retSub">週六・7 晚</div>
+        </div>
+        <div class="s-field">
+          <label>乘客 / 艙等</label>
+          <div class="s-val">1 位成人</div>
+          <div class="s-sub">經濟艙</div>
+        </div>
+        <button class="btn-search-main" onclick="doSearch()">
+          <span>🔍</span><span>搜尋</span>
+        </button>
+      </div>
+
+      <div class="search-hints">
+        <span class="hint-tag" onclick="setDest('大阪','OSA','關西 / 伊丹')">🏯 大阪</span>
+        <span class="hint-tag" onclick="setDest('首爾','SEL','仁川 / 金浦')">🎎 首爾</span>
+        <span class="hint-tag" onclick="setDest('曼谷','BKK','素萬那普')">🌴 曼谷</span>
+        <span class="hint-tag" onclick="setDest('巴黎','CDG','戴高樂')">🗼 巴黎</span>
+        <span class="hint-tag" onclick="setDest('峇里島','DPS','鄧帕薩')">🌺 峇里島</span>
+        <span class="hint-tag">📅 彈性日期</span>
+        <span class="hint-tag">💰 最低票價月</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ MAIN CONTENT ══════════════ -->
+<div class="main-wrap">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- Sort & Filter label -->
+    <div class="filter-card">
+      <h3>篩選條件</h3>
+
+      <div class="section-label">轉機次數</div>
+      <div class="filter-row">
+        <label><input type="checkbox" class="f-check" checked> 直飛</label>
+        <span class="cnt">12 班</span>
+      </div>
+      <div class="filter-row">
+        <label><input type="checkbox" class="f-check" checked> 1 次轉機</label>
+        <span class="cnt">24 班</span>
+      </div>
+      <div class="filter-row">
+        <label><input type="checkbox" class="f-check"> 2 次以上</label>
+        <span class="cnt">8 班</span>
+      </div>
+
+      <div class="divider" style="margin:12px 0;"></div>
+      <div class="section-label">航空公司</div>
+      <div class="filter-row">
+        <label><input type="checkbox" class="f-check" checked> 長榮航空 🟢</label>
+      </div>
+      <div class="filter-row">
+        <label><input type="checkbox" class="f-check" checked> 中華航空 🔵</label>
+      </div>
+      <div class="filter-row">
+        <label><input type="checkbox" class="f-check" checked> 星宇航空 ⭐</label>
+      </div>
+      <div class="filter-row">
+        <label><input type="checkbox" class="f-check" checked> 台灣虎航 🟠</label>
+      </div>
+      <div class="filter-row">
+        <label><input type="checkbox" class="f-check"> 日本航空 🔴</label>
+      </div>
+      <div class="filter-row">
+        <label><input type="checkbox" class="f-check"> 全日空 🌸</label>
+      </div>
+
+      <div class="divider" style="margin:12px 0;"></div>
+      <div class="section-label">票價範圍（單人含稅）</div>
+      <div class="range-wrap">
+        <div class="range-labels"><span>NT$2,000</span><span id="rangeVal">NT$8,000</span></div>
+        <input type="range" min="2000" max="15000" value="8000" oninput="document.getElementById('rangeVal').textContent='NT$'+Number(this.value).toLocaleString()">
+      </div>
+
+      <div class="divider" style="margin:12px 0;"></div>
+      <div class="section-label">出發時段</div>
+      <div class="filter-row"><label><input type="checkbox" class="f-check" checked> 凌晨 00–06 時</label></div>
+      <div class="filter-row"><label><input type="checkbox" class="f-check" checked> 早晨 06–12 時</label></div>
+      <div class="filter-row"><label><input type="checkbox" class="f-check" checked> 下午 12–18 時</label></div>
+      <div class="filter-row"><label><input type="checkbox" class="f-check" checked> 夜間 18–24 時</label></div>
+
+      <div class="divider" style="margin:12px 0;"></div>
+      <div class="section-label">行李設定</div>
+      <div class="filter-row"><label><input type="checkbox" class="f-check"> 僅顯示含行李班次</label></div>
+    </div>
+
+    <!-- Price Alert -->
+    <div class="alert-card" id="alertSection">
+      <h3>🔔 設定降價通知</h3>
+      <p>輸入目標票價，跌破時立即通知您</p>
+      <input class="alert-input" type="text" placeholder="路線（如：台北→東京）" value="台北 → 東京">
+      <input class="alert-input" type="number" placeholder="目標票價 NT$" value="5500">
+      <input class="alert-input" type="email" placeholder="通知 Email">
+      <button class="btn-alert" onclick="setAlert()">🔔 開始追蹤</button>
+    </div>
+  </aside>
+
+  <!-- RESULTS -->
+  <div class="results-area">
+
+    <!-- Header -->
+    <div class="result-header">
+      <div>
+        <div class="result-title">台北 → 東京 ✈ 07/18–07/25</div>
+        <div class="result-count">共找到 44 個航班組合</div>
+      </div>
+      <div class="sort-row">
+        <button class="sort-btn active" onclick="setSort(this)">最低價</button>
+        <button class="sort-btn" onclick="setSort(this)">最快速</button>
+        <button class="sort-btn" onclick="setSort(this)">最佳選擇</button>
+      </div>
+    </div>
+
+    <!-- AI Best Deal -->
+    <div class="ai-banner fade-in">
+      <div class="ai-icon">🤖</div>
+      <div class="ai-body">
+        <div class="ai-badge">AI 最優組合</div>
+        <div class="ai-title">長榮 07:30 去 + 華航 15:20 回</div>
+        <div class="ai-desc">比其他去回程組合便宜 NT$1,840 · 全程直飛 · 無需轉機</div>
+        <div class="ai-tags">
+          <span class="ai-tag green">✓ 全程直飛</span>
+          <span class="ai-tag green">🧳 含 20kg 行李</span>
+          <span class="ai-tag orange">📈 建議現在訂</span>
+          <span class="ai-tag red">🔥 剩 4 席</span>
+        </div>
+      </div>
+      <div class="ai-price-col">
+        <div class="ai-price">NT$7,290</div>
+        <div class="ai-price-sub">來回含稅 · 1 人</div>
+        <div class="ai-save">↓ 省 NT$1,840</div>
+        <button class="btn-book-main" onclick="openModal()">🎫 查看詳情</button>
+      </div>
+    </div>
+
+    <!-- Price Calendar -->
+    <div class="cal-section">
+      <div class="cal-section-header">
+        <h3>📅 價格日曆 — 選最便宜出發日</h3>
+        <div class="cal-legend">
+          <span class="cal-legend-dot" style="background:#16a34a;"></span> 便宜
+          <span class="cal-legend-dot" style="background:#f59e0b;"></span> 一般
+          <span class="cal-legend-dot" style="background:#ea580c;"></span> 較貴
+        </div>
+        <div class="month-nav">
+          <button class="mnav-btn">‹</button>
+          <button class="mnav-btn">›</button>
+        </div>
+      </div>
+      <div class="cal-grid-header">
+        <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+    <!-- Outbound Flights -->
+    <div>
+      <div class="flight-section-header">
+        <h3>✈ 去程航班 — 07/18 台北 → 東京</h3>
+        <span class="toggle-view" onclick="toggleFlights('out')">顯示全部 ▼</span>
+      </div>
+      <div id="outFlights">
+
+        <div class="flight-card recommended" onclick="openDetail('長榮航空','BR2198','07:30','11:55','3h 25m','直飛','NT$3,645','NT$400','NT$0','NT$4,045')">
+          <div class="airline-logo">🟢</div>
+          <div class="flight-info">
+            <div class="flight-times">07:30 <span class="arrow">→</span> 11:55</div>
+            <div class="flight-meta">
+              <span>長榮航空 BR2198</span>
+              <span>桃園 TPE → 成田 NRT</span>
+            </div>
+          </div>
+          <div class="flight-duration">
+            <div class="dur-line"><span>✈</span><div class="dur-dash"></div></div>
+            <div>3h 25m</div>
+            <div class="dur-label">直飛</div>
+          </div>
+          <div class="flight-badges">
+            <span class="badge lowest">🏷 最低價</span>
+            <span class="badge direct">✈ 直飛</span>
+            <span class="badge baggage">🧳 含行李</span>
+          </div>
+          <div class="flight-price">
+            <div class="price">NT$3,645</div>
+            <div class="price-sub">單人含稅（模擬）</div>
+            <button class="btn-select" onclick="event.stopPropagation();bookFlight('長榮航空','BR2198')">官網訂票 →</button>
+          </div>
+        </div>
+
+        <div class="flight-card" onclick="openDetail('星宇航空','JX801','08:50','13:25','3h 35m','直飛','NT$3,790','NT$380','NT$0','NT$4,170')">
+          <div class="airline-logo">⭐</div>
+          <div class="flight-info">
+            <div class="flight-times">08:50 <span class="arrow">→</span> 13:25</div>
+            <div class="flight-meta">
+              <span>星宇航空 JX801</span>
+              <span>桃園 TPE → 成田 NRT</span>
+            </div>
+          </div>
+          <div class="flight-duration">
+            <div class="dur-line"><span>✈</span><div class="dur-dash"></div></div>
+            <div>3h 35m</div>
+            <div class="dur-label">直飛</div>
+          </div>
+          <div class="flight-badges">
+            <span class="badge recmd">⭐ 推薦</span>
+            <span class="badge direct">✈ 直飛</span>
+          </div>
+          <div class="flight-price">
+            <div class="price">NT$3,790</div>
+            <div class="price-sub">單人含稅（模擬）</div>
+            <button class="btn-select outline" onclick="event.stopPropagation();bookFlight('星宇航空','JX801')">官網訂票 →</button>
+          </div>
+        </div>
+
+        <div class="flight-card" onclick="openDetail('中華航空','CI221','10:15','14:55','3h 40m','直飛','NT$3,890','NT$420','NT$0','NT$4,310')">
+          <div class="airline-logo">🔵</div>
+          <div class="flight-info">
+            <div class="flight-times">10:15 <span class="arrow">→</span> 14:55</div>
+            <div class="flight-meta">
+              <span>中華航空 CI221</span>
+              <span>桃園 TPE → 成田 NRT</span>
+            </div>
+          </div>
+          <div class="flight-duration">
+            <div class="dur-line"><span>✈</span><div class="dur-dash"></div></div>
+            <div>3h 40m</div>
+            <div class="dur-label">直飛</div>
+          </div>
+          <div class="flight-badges">
+            <span class="badge direct">✈ 直飛</span>
+            <span class="badge baggage">🧳 含行李</span>
+          </div>
+          <div class="flight-price">
+            <div class="price">NT$3,890</div>
+            <div class="price-sub">單人含稅（模擬）</div>
+            <button class="btn-select outline" onclick="event.stopPropagation();bookFlight('中華航空','CI221')">官網訂票 →</button>
+          </div>
+        </div>
+
+        <div class="flight-card" onclick="openDetail('台灣虎航','IT261','14:40','19:20','3h 40m','直飛','NT$2,990','NT$300','NT$450','NT$3,740')">
+          <div class="airline-logo">🟠</div>
+          <div class="flight-info">
+            <div class="flight-times">14:40 <span class="arrow">→</span> 19:20</div>
+            <div class="flight-meta">
+              <span>台灣虎航 IT261</span>
+              <span>桃園 TPE → 成田 NRT</span>
+            </div>
+          </div>
+          <div class="flight-duration">
+            <div class="dur-line"><span>✈</span><div class="dur-dash"></div></div>
+            <div>3h 40m</div>
+            <div class="dur-label">直飛</div>
+          </div>
+          <div class="flight-badges">
+            <span class="badge budget">💜 廉航</span>
+            <span class="badge direct">✈ 直飛</span>
+          </div>
+          <div class="flight-price">
+            <div class="price" style="color:#7c3aed;">NT$2,990</div>
+            <div class="price-sub">不含行李（模擬）</div>
+            <div class="price-note">+NT$450 行李費</div>
+            <button class="btn-select outline" onclick="event.stopPropagation();bookFlight('台灣虎航','IT261')">官網訂票 →</button>
+          </div>
+        </div>
+
+      </div>
+      <button class="show-more-btn" onclick="showMoreFlights('out', this)">
+        ＋ 顯示更多去程航班（8 個）
+      </button>
+    </div>
+
+    <!-- Return Flights -->
+    <div>
+      <div class="flight-section-header">
+        <h3>↩ 回程航班 — 07/25 東京 → 台北</h3>
+        <span class="toggle-view" onclick="toggleFlights('ret')">顯示全部 ▼</span>
+      </div>
+      <div id="retFlights">
+
+        <div class="flight-card" onclick="openDetail('中華航空','CI220','15:20','17:40','3h 20m','直飛','NT$3,645','NT$400','NT$0','NT$4,045')">
+          <div class="airline-logo">🔵</div>
+          <div class="flight-info">
+            <div class="flight-times">15:20 <span class="arrow">→</span> 17:40</div>
+            <div class="flight-meta">
+              <span>中華航空 CI220</span>
+              <span>成田 NRT → 桃園 TPE</span>
+            </div>
+          </div>
+          <div class="flight-duration">
+            <div class="dur-line"><span>✈</span><div class="dur-dash"></div></div>
+            <div>3h 20m</div>
+            <div class="dur-label">直飛</div>
+          </div>
+          <div class="flight-badges">
+            <span class="badge lowest">🏷 最低價</span>
+            <span class="badge baggage">🧳 含行李</span>
+          </div>
+          <div class="flight-price">
+            <div class="price">NT$3,645</div>
+            <div class="price-sub">單人含稅（模擬）</div>
+            <button class="btn-select" onclick="event.stopPropagation();bookFlight('中華航空','CI220')">官網訂票 →</button>
+          </div>
+        </div>
+
+        <div class="flight-card recommended" onclick="openDetail('長榮航空','BR197','09:05','11:35','3h 30m','直飛','NT$3,720','NT$400','NT$0','NT$4,120')">
+          <div class="airline-logo">🟢</div>
+          <div class="flight-info">
+            <div class="flight-times">09:05 <span class="arrow">→</span> 11:35</div>
+            <div class="flight-meta">
+              <span>長榮航空 BR197</span>
+              <span>羽田 HND → 桃園 TPE</span>
+            </div>
+          </div>
+          <div class="flight-duration">
+            <div class="dur-line"><span>✈</span><div class="dur-dash"></div></div>
+            <div>3h 30m</div>
+            <div class="dur-label">直飛</div>
+          </div>
+          <div class="flight-badges">
+            <span class="badge recmd">⭐ AI 推薦</span>
+            <span class="badge direct">✈ 直飛</span>
+            <span class="badge baggage">🧳 含行李</span>
+          </div>
+          <div class="flight-price">
+            <div class="price">NT$3,720</div>
+            <div class="price-sub">單人含稅（模擬）</div>
+            <button class="btn-select outline" onclick="event.stopPropagation();bookFlight('長榮航空','BR197')">官網訂票 →</button>
+          </div>
+        </div>
+
+        <div class="flight-card" onclick="openDetail('星宇航空','JX802','11:30','14:00','3h 30m','直飛','NT$3,800','NT$380','NT$0','NT$4,180')">
+          <div class="airline-logo">⭐</div>
+          <div class="flight-info">
+            <div class="flight-times">11:30 <span class="arrow">→</span> 14:00</div>
+            <div class="flight-meta">
+              <span>星宇航空 JX802</span>
+              <span>成田 NRT → 桃園 TPE</span>
+            </div>
+          </div>
+          <div class="flight-duration">
+            <div class="dur-line"><span>✈</span><div class="dur-dash"></div></div>
+            <div>3h 30m</div>
+            <div class="dur-label">直飛</div>
+          </div>
+          <div class="flight-badges">
+            <span class="badge direct">✈ 直飛</span>
+          </div>
+          <div class="flight-price">
+            <div class="price">NT$3,800</div>
+            <div class="price-sub">單人含稅（模擬）</div>
+            <button class="btn-select outline" onclick="event.stopPropagation();bookFlight('星宇航空','JX802')">官網訂票 →</button>
+          </div>
+        </div>
+
+      </div>
+      <button class="show-more-btn">＋ 顯示更多回程航班（6 個）</button>
+    </div>
+
+    <!-- Price Trend -->
+    <div class="trend-section">
+      <h3>📊 票價趨勢 — 台北→東京（過去 30 天）</h3>
+      <div class="trend-chart">
+        <svg viewBox="0 0 700 80" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#fed7aa" stop-opacity="0.7"/>
+              <stop offset="100%" stop-color="#fed7aa" stop-opacity="0.05"/>
+            </linearGradient>
+          </defs>
+          <!-- Area fill -->
+          <path d="M0,65 L35,60 L70,55 L105,58 L140,52 L175,48 L210,50 L245,45 L280,40 L315,38 L350,35 L385,30 L420,34 L455,28 L490,25 L525,30 L560,22 L595,26 L630,20 L665,24 L700,18 L700,80 L0,80 Z"
+            fill="url(#tg)"/>
+          <!-- Line -->
+          <path d="M0,65 L35,60 L70,55 L105,58 L140,52 L175,48 L210,50 L245,45 L280,40 L315,38 L350,35 L385,30 L420,34 L455,28 L490,25 L525,30 L560,22 L595,26 L630,20 L665,24 L700,18"
+            fill="none" stroke="#c2410c" stroke-width="2" stroke-linejoin="round"/>
+          <!-- Current price dot -->
+          <circle cx="700" cy="18" r="4" fill="#c2410c"/>
+          <!-- Cheapest dot -->
+          <circle cx="560" cy="22" r="5" fill="#16a34a"/>
+          <text x="555" y="15" font-size="9" fill="#16a34a" font-weight="bold">最低</text>
+        </svg>
+      </div>
+      <div class="trend-labels">
+        <span>4/7</span><span>4/14</span><span>4/21</span><span>4/28</span><span>5/5</span><span>今天</span>
+      </div>
+      <div class="buy-signal">
+        ✅ AI 分析：目前票價比過去 30 天平均低 18%，<strong>建議現在訂票</strong>，預測下週將上漲。
+      </div>
+    </div>
+
+  </div><!-- end results-area -->
+</div><!-- end main-wrap -->
+
+<!-- ══════════════ POPULAR ROUTES ══════════════ -->
+<div class="popular-section">
+  <h2>🔥 熱門航線，最低票價</h2>
+  <div class="route-grid">
+    <div class="route-card" onclick="setDest('東京','TYO','成田 / 羽田')">
+      <div class="route-card-img"><span class="r-flag">🗼</span></div>
+      <div class="route-card-body">
+        <div class="route-city">東京</div>
+        <div class="route-code">台北 TPE → TYO</div>
+        <div class="route-price-row">
+          <div>
+            <div class="route-price">NT$2,990</div>
+            <div class="route-price-label">起 / 單人含稅</div>
+          </div>
+          <span class="route-tag">直飛</span>
+        </div>
+      </div>
+    </div>
+    <div class="route-card" onclick="setDest('大阪','OSA','關西 / 伊丹')">
+      <div class="route-card-img" style="background:linear-gradient(135deg,#fce7f3,#f9a8d4)"><span class="r-flag">🏯</span></div>
+      <div class="route-card-body">
+        <div class="route-city">大阪</div>
+        <div class="route-code">台北 TPE → OSA</div>
+        <div class="route-price-row">
+          <div>
+            <div class="route-price">NT$3,200</div>
+            <div class="route-price-label">起 / 單人含稅</div>
+          </div>
+          <span class="route-tag">直飛</span>
+        </div>
+      </div>
+    </div>
+    <div class="route-card" onclick="setDest('首爾','SEL','仁川 / 金浦')">
+      <div class="route-card-img" style="background:linear-gradient(135deg,#dbeafe,#93c5fd)"><span class="r-flag">🎎</span></div>
+      <div class="route-card-body">
+        <div class="route-city">首爾</div>
+        <div class="route-code">台北 TPE → SEL</div>
+        <div class="route-price-row">
+          <div>
+            <div class="route-price">NT$2,500</div>
+            <div class="route-price-label">起 / 單人含稅</div>
+          </div>
+          <span class="route-tag">直飛</span>
+        </div>
+      </div>
+    </div>
+    <div class="route-card" onclick="setDest('曼谷','BKK','素萬那普')">
+      <div class="route-card-img" style="background:linear-gradient(135deg,#dcfce7,#86efac)"><span class="r-flag">🌴</span></div>
+      <div class="route-card-body">
+        <div class="route-city">曼谷</div>
+        <div class="route-code">台北 TPE → BKK</div>
+        <div class="route-price-row">
+          <div>
+            <div class="route-price">NT$4,100</div>
+            <div class="route-price-label">起 / 單人含稅</div>
+          </div>
+          <span class="route-tag">直飛</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-logo">✈ 旅遊趣</div>
+      <div class="footer-desc">整合全台 20+ 航空公司票價，<br>AI 智慧推薦最優來回組合，<br>讓每次旅行都更划算。</div>
+    </div>
+    <div>
+      <h4>探索</h4>
+      <ul>
+        <li><a href="#">機票比價</a></li>
+        <li><a href="#">飯店搜尋</a></li>
+        <li><a href="#">租車比較</a></li>
+        <li><a href="#">旅遊套餐</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>工具</h4>
+      <ul>
+        <li><a href="#">降價通知</a></li>
+        <li><a href="#">價格日曆</a></li>
+        <li><a href="#">地圖找票</a></li>
+        <li><a href="#">最低票價月</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>關於</h4>
+      <ul>
+        <li><a href="#">關於旅遊趣</a></li>
+        <li><a href="#">隱私政策</a></li>
+        <li><a href="#">服務條款</a></li>
+        <li><a href="#">聯絡我們</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 旅遊趣 FlightJoy. All rights reserved.</span>
+    <span>票價僅供參考，實際以航空公司官網為準</span>
+  </div>
+</footer>
+
+<!-- ══════════════ MODAL ══════════════ -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h2>🎫 航班詳情與費用明細</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- API Settings Modal -->
+<div class="api-modal-overlay" id="apiModalOverlay" onclick="closeApiModal(event)">
+  <div class="api-modal">
+    <h2>⚙ Travelpayouts API 設定</h2>
+    <p class="api-sub">Token 只存在瀏覽器本機，不會上傳任何伺服器。設定後即可搜尋即時票價。</p>
+    <div class="api-hint">
+      Token 取得位置：<a href="https://app.travelpayouts.com/profile/api-token" target="_blank">app.travelpayouts.com → Profile → API token</a>
+    </div>
+    <div class="api-field">
+      <label>API Token</label>
+      <input type="text" id="apiKeyInput" placeholder="貼上你的 Travelpayouts API Token...">
+    </div>
+    <div class="api-status" id="apiStatus"></div>
+    <div class="api-btn-row">
+      <button class="api-save-btn" onclick="saveAndTestApi()">✅ 儲存並測試連線</button>
+      <button class="api-cancel-btn" onclick="closeApiModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Search Loading Overlay -->
+<div class="search-loading" id="searchLoading">
+  <div class="spinner"></div>
+  <div class="loading-text">正在搜尋即時票價…</div>
+  <div class="loading-sub" id="loadingSubText">連線 Travelpayouts API 中</div>
+</div>
+
+<!-- Airport Picker Popup -->
+<div class="ap-overlay" id="apOverlay" onclick="closeAirportPicker(event)">
+  <div class="ap-popup" id="apPopup">
+    <div class="ap-search-wrap">
+      <span class="ap-search-icon">🔍</span>
+      <input class="ap-search-input" id="apSearchInput" type="text"
+        placeholder="輸入城市、機場名稱或代碼…"
+        oninput="filterAirports(this.value)"
+        autocomplete="off">
+    </div>
+    <div class="ap-list" id="apList"></div>
+  </div>
+</div>
+
+<!-- Date Picker Popup -->
+<div class="datepicker-overlay" id="dpOverlay" onclick="closeDatePicker(event)">
+  <div class="datepicker-popup" id="dpPopup">
+    <div class="dp-header">
+      <button class="dp-nav" id="dpPrev" onclick="dpChangeMonth(-1)">‹</button>
+      <h4 id="dpTitle">2026 年 7 月</h4>
+      <button class="dp-nav" id="dpNext" onclick="dpChangeMonth(1)">›</button>
+    </div>
+    <div class="dp-dow-row">
+      <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+    </div>
+    <div class="dp-grid" id="dpGrid"></div>
+    <div class="dp-footer">
+      <div class="dp-selected-info" id="dpInfo">請選擇日期</div>
+      <button class="dp-confirm" onclick="confirmDate()">確認</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ SCRIPTS ══════════════ -->
+<script>
+// ════════════════════════════════════════════
+// DATE PICKER ENGINE
+// ════════════════════════════════════════════
+const WEEKDAYS_TW = ['日','一','二','三','四','五','六'];
+const MONTHS_TW   = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+// Indicative price hints per day-of-month (repeating pattern for demo)
+const PRICE_HINT = [null,
+  'low','low','mid','mid','high','high','low',   // 1–7
+  'low','mid','mid','high','high','low','low',   // 8–14
+  'mid','mid','high','high','low','low','mid',   // 15–21
+  'mid','low','low','mid','high','high','mid',   // 22–28
+  'low','low','mid'                              // 29–31
+];
+
+let dpMode       = 'dep';  // 'dep' or 'ret'
+let dpYear       = 2026;
+let dpMonth      = 6;      // 0-indexed → July
+let dpAnchorEl   = null;
+
+// Selected dates stored as {y,m,d}
+let selDep = { y:2026, m:6, d:18 };
+let selRet = { y:2026, m:6, d:25 };
+let tempSel = null;  // while picker is open
+
+const today = new Date();
+
+function openDatePicker(mode, anchorEl) {
+  dpMode    = mode;
+  dpAnchorEl = anchorEl;
+  tempSel   = mode === 'dep' ? {...selDep} : {...selRet};
+
+  // Start calendar on relevant month
+  dpYear  = tempSel.y;
+  dpMonth = tempSel.m;
+
+  // Position popup under the clicked field (fixed coords)
+  const rect = anchorEl.getBoundingClientRect();
+  const popup = document.getElementById('dpPopup');
+  const spaceBelow = window.innerHeight - rect.bottom - 8;
+  if (spaceBelow < 200) {
+    popup.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+    popup.style.top = 'auto';
+  } else {
+    popup.style.top  = (rect.bottom + 6) + 'px';
+    popup.style.bottom = 'auto';
+  }
+  popup.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 330)) + 'px';
+
+  // Mark field active
+  document.querySelectorAll('.s-field').forEach(f => f.classList.remove('active-field'));
+  anchorEl.classList.add('active-field');
+
+  renderDpGrid();
+  document.getElementById('dpOverlay').classList.add('open');
+}
+
+function closeDatePicker(e) {
+  if (!e || e.target === document.getElementById('dpOverlay')) {
+    document.getElementById('dpOverlay').classList.remove('open');
+    document.querySelectorAll('.s-field').forEach(f => f.classList.remove('active-field'));
+    tempSel = null;
+  }
+}
+
+function dpChangeMonth(delta) {
+  dpMonth += delta;
+  if (dpMonth > 11) { dpMonth = 0; dpYear++; }
+  if (dpMonth < 0)  { dpMonth = 11; dpYear--; }
+  renderDpGrid();
+}
+
+function renderDpGrid() {
+  const grid  = document.getElementById('dpGrid');
+  const title = document.getElementById('dpTitle');
+  title.textContent = dpYear + ' 年 ' + (dpMonth + 1) + ' 月';
+  grid.innerHTML = '';
+
+  const firstDay = new Date(dpYear, dpMonth, 1).getDay();
+  const daysInMonth = new Date(dpYear, dpMonth + 1, 0).getDate();
+
+  // Min selectable date: today
+  const minDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  // If picking return, min = departure date + 1 day
+  const minRet = dpMode === 'ret'
+    ? new Date(selDep.y, selDep.m, selDep.d + 1)
+    : minDate;
+
+  // Leading empty cells
+  for (let i = 0; i < firstDay; i++) {
+    const blank = document.createElement('div');
+    blank.className = 'dp-cell dp-other';
+    grid.appendChild(blank);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const cellDate = new Date(dpYear, dpMonth, d);
+    const cell = document.createElement('div');
+    const hint = PRICE_HINT[d] || 'mid';
+
+    let classes = 'dp-cell';
+
+    // Disabled?
+    const minCheck = dpMode === 'ret' ? minRet : minDate;
+    if (cellDate < minCheck) { classes += ' dp-disabled'; }
+
+    // Today marker
+    if (cellDate.toDateString() === today.toDateString()) classes += ' dp-today';
+
+    // Range shading (dep already chosen, picking ret)
+    if (dpMode === 'ret' && tempSel) {
+      const depDate = new Date(selDep.y, selDep.m, selDep.d);
+      const retDate = tempSel ? new Date(tempSel.y, tempSel.m, tempSel.d) : null;
+      if (cellDate.getTime() === depDate.getTime()) classes += ' dp-range-start';
+      else if (retDate && cellDate.getTime() === retDate.getTime()) classes += ' dp-range-end';
+      else if (retDate && cellDate > depDate && cellDate < retDate) classes += ' dp-in-range';
+    }
+
+    // Selected?
+    if (tempSel && tempSel.y === dpYear && tempSel.m === dpMonth && tempSel.d === d) {
+      classes = classes.replace('dp-today','') + ' dp-selected';
+    }
+
+    cell.className = classes;
+    cell.innerHTML = '<span>' + d + '</span><span class="dp-price-dot ' + hint + '">' +
+      (hint === 'low' ? '●低' : hint === 'high' ? '●高' : '') + '</span>';
+
+    cell.addEventListener('click', function() { selectDay(d); });
+    grid.appendChild(cell);
+  }
+
+  updateDpInfo();
+}
+
+function selectDay(d) {
+  tempSel = { y: dpYear, m: dpMonth, d };
+  renderDpGrid();
+  updateDpInfo();
+}
+
+function updateDpInfo() {
+  const info = document.getElementById('dpInfo');
+  if (!tempSel) { info.textContent = '請選擇日期'; return; }
+  const wd = new Date(tempSel.y, tempSel.m, tempSel.d).getDay();
+  const label = dpMode === 'dep' ? '去程' : '回程';
+  info.innerHTML = label + '：<strong>' + tempSel.y + ' 年 ' + (tempSel.m + 1) + ' 月 ' + tempSel.d + ' 日（' + ['日','一','二','三','四','五','六'][wd] + '）</strong>';
+}
+
+function confirmDate() {
+  if (!tempSel) { showToast('⚠️ 請先選擇日期'); return; }
+
+  const wd    = new Date(tempSel.y, tempSel.m, tempSel.d).getDay();
+  const wdTW  = ['日','一','二','三','四','五','六'][wd];
+  const label = (tempSel.m + 1) + ' 月 ' + tempSel.d + ' 日';
+
+  if (dpMode === 'dep') {
+    selDep = {...tempSel};
+    document.getElementById('depDate').textContent = tempSel.y + ' 年 ' + label;
+    document.getElementById('depSub').textContent  = '週' + wdTW;
+
+    // If return is now before departure, push it forward 7 days
+    const depD = new Date(selDep.y, selDep.m, selDep.d);
+    const retD = new Date(selRet.y, selRet.m, selRet.d);
+    if (retD <= depD) {
+      const newRet = new Date(depD);
+      newRet.setDate(newRet.getDate() + 7);
+      selRet = { y: newRet.getFullYear(), m: newRet.getMonth(), d: newRet.getDate() };
+      updateRetDisplay();
+    }
+    // Update nights count
+    updateNights();
+    showToast('📅 去程：' + label + ' 已設定');
+
+  } else {
+    selRet = {...tempSel};
+    updateRetDisplay();
+    updateNights();
+    showToast('📅 回程：' + label + ' 已設定');
+  }
+
+  // Also sync the price calendar hero strip
+  syncHeroCalendar();
+
+  closeDatePicker();
+}
+
+function updateRetDisplay() {
+  const wd   = new Date(selRet.y, selRet.m, selRet.d).getDay();
+  const wdTW = ['日','一','二','三','四','五','六'][wd];
+  document.getElementById('retDate').textContent = selRet.y + ' 年 ' + (selRet.m + 1) + ' 月 ' + selRet.d + ' 日';
+  updateNights();
+  const sub = document.getElementById('retSub');
+  if (sub) sub.textContent = '週' + wdTW;
+}
+
+function updateNights() {
+  const depD   = new Date(selDep.y, selDep.m, selDep.d);
+  const retD   = new Date(selRet.y, selRet.m, selRet.d);
+  const nights = Math.round((retD - depD) / 86400000);
+  const wd     = new Date(selRet.y, selRet.m, selRet.d).getDay();
+  const wdTW   = ['日','一','二','三','四','五','六'][wd];
+  const sub    = document.getElementById('retSub');
+  if (sub) sub.textContent = '週' + wdTW + '・' + nights + ' 晚';
+
+  // Update result header
+  const hdr = document.querySelector('.result-title');
+  if (hdr) {
+    const dm = (selDep.m + 1) + '/' + selDep.d;
+    const rm = (selRet.m + 1) + '/' + selRet.d;
+    hdr.textContent = '台北 → 東京 ✈ ' + dm + '–' + rm;
+  }
+}
+
+function syncHeroCalendar() {
+  // Update the hero price calendar selected state
+  const cells = document.querySelectorAll('#calGrid .cal-cell');
+  cells.forEach(c => {
+    c.classList.remove('selected');
+    const dayEl = c.querySelector('.c-day');
+    if (dayEl && parseInt(dayEl.textContent) === selDep.d && !c.classList.contains('disabled')) {
+      c.classList.add('selected');
+    }
+  });
+}
+
+// ── Trip type toggle ──
+function setTripType(type, btn) {
+  document.querySelectorAll('.trip-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const retField = document.getElementById('retDateField');
+  retField.style.display = type === 'oneway' ? 'none' : '';
+}
+
+// ── Destination hints (quick-pick from hero tags) ──
+function setDest(city, code, sub) {
+  const found = AIRPORTS.find(a => a.code === code) ||
+    { code, city, name: sub, country: '', region: '', hot: false };
+  selTo = found;
+  document.getElementById('destVal').textContent = city + ' (' + code + ')';
+  document.getElementById('destSub').textContent = sub;
+  showToast('✈ 目的地設為 ' + city);
+}
+
+// ════════════════════════════════════════════
+// AIRPORT DATA & PICKER ENGINE
+// ════════════════════════════════════════════
+// ── Airline booking URLs ──────────────────
+const AIRLINE_URLS = {
+  '長榮航空':   { url: 'https://www.evaair.com/zh-tw/flights/book-flights/', en: 'EVA Air' },
+  '中華航空':   { url: 'https://www.china-airlines.com/tw/zh/book/book-flights', en: 'China Airlines' },
+  '星宇航空':   { url: 'https://www.starlux-airlines.com/zh-TW/booking', en: 'STARLUX' },
+  '台灣虎航':   { url: 'https://www.tigerairtw.com/zh-tw', en: 'Tigerair Taiwan' },
+  '日本航空':   { url: 'https://www.jal.com/tw/zhtw/', en: 'JAL' },
+  '全日空':     { url: 'https://www.ana.co.jp/zh/tw/', en: 'ANA' },
+  '國泰航空':   { url: 'https://www.cathaypacific.com/cx/zh_TW.html', en: 'Cathay Pacific' },
+  '新加坡航空': { url: 'https://www.singaporeair.com/zh_TW/tw/home', en: 'Singapore Airlines' },
+  '泰國航空':   { url: 'https://www.thaiairways.com/zh_TW/', en: 'Thai Airways' },
+  '馬來西亞航空':{ url: 'https://www.malaysiaairlines.com/tw/zh.html', en: 'Malaysia Airlines' },
+  '亞洲航空':   { url: 'https://www.airasia.com/zh/tw', en: 'AirAsia' },
+  '越捷航空':   { url: 'https://www.vietjetair.com/', en: 'VietJet Air' },
+  '韓亞航空':   { url: 'https://www.flyasiana.com/', en: 'Asiana Airlines' },
+  '大韓航空':   { url: 'https://www.koreanair.com/', en: 'Korean Air' },
+};
+
+function bookFlight(airlineName, flightNo) {
+  const info = AIRLINE_URLS[airlineName];
+  if (info) {
+    window.open(info.url, '_blank', 'noopener');
+    showToast('✈ 已開啟 ' + airlineName + ' 訂票頁面');
+  } else {
+    // Fallback: search Google Flights
+    const dest = selTo ? selTo.code : 'TYO';
+    const dep  = selFrom ? selFrom.code : 'TPE';
+    const url  = 'https://www.google.com/travel/flights?q=' + encodeURIComponent(dep + ' to ' + dest);
+    window.open(url, '_blank', 'noopener');
+    showToast('✈ 已開啟 Google Flights 搜尋');
+  }
+}
+
+const AIRPORTS = [
+  // ── 熱門（台灣出發最常飛）──────────────────
+  { region:'🔥 熱門航點', code:'NRT', city:'東京', name:'成田國際機場', country:'🇯🇵 日本', hot:true },
+  { region:'🔥 熱門航點', code:'HND', city:'東京', name:'羽田國際機場', country:'🇯🇵 日本', hot:true },
+  { region:'🔥 熱門航點', code:'KIX', city:'大阪', name:'關西國際機場', country:'🇯🇵 日本', hot:true },
+  { region:'🔥 熱門航點', code:'ICN', city:'首爾', name:'仁川國際機場', country:'🇰🇷 韓國', hot:true },
+  { region:'🔥 熱門航點', code:'BKK', city:'曼谷', name:'素萬那普機場', country:'🇹🇭 泰國', hot:true },
+  { region:'🔥 熱門航點', code:'SIN', city:'新加坡', name:'樟宜國際機場', country:'🇸🇬 新加坡', hot:true },
+  { region:'🔥 熱門航點', code:'HKG', city:'香港', name:'香港國際機場', country:'🇭🇰 香港', hot:true },
+  { region:'🔥 熱門航點', code:'DPS', city:'峇里島', name:'鄧帕薩恩古拉萊機場', country:'🇮🇩 印尼', hot:true },
+
+  // ── 台灣 ──────────────────────────────────
+  { region:'🇹🇼 台灣', code:'TPE', city:'台北', name:'桃園國際機場', country:'🇹🇼 台灣' },
+  { region:'🇹🇼 台灣', code:'TSA', city:'台北', name:'松山機場', country:'🇹🇼 台灣' },
+  { region:'🇹🇼 台灣', code:'KHH', city:'高雄', name:'高雄國際機場', country:'🇹🇼 台灣' },
+  { region:'🇹🇼 台灣', code:'RMQ', city:'台中', name:'台中國際機場', country:'🇹🇼 台灣' },
+  { region:'🇹🇼 台灣', code:'TNN', city:'台南', name:'台南機場', country:'🇹🇼 台灣' },
+  { region:'🇹🇼 台灣', code:'MZG', city:'澎湖', name:'馬公機場', country:'🇹🇼 台灣' },
+  { region:'🇹🇼 台灣', code:'KNH', city:'金門', name:'金門機場', country:'🇹🇼 台灣' },
+
+  // ── 日本 ──────────────────────────────────
+  { region:'🇯🇵 日本', code:'NRT', city:'東京', name:'成田國際機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'HND', city:'東京', name:'羽田國際機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'KIX', city:'大阪', name:'關西國際機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'ITM', city:'大阪', name:'伊丹機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'NGO', city:'名古屋', name:'中部國際機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'FUK', city:'福岡', name:'福岡機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'CTS', city:'札幌', name:'新千歲機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'OKA', city:'沖繩', name:'那霸機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'HIJ', city:'廣島', name:'廣島機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'KMJ', city:'熊本', name:'熊本機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'KOJ', city:'鹿兒島', name:'鹿兒島機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'SDJ', city:'仙台', name:'仙台機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'AOJ', city:'青森', name:'青森機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'KMQ', city:'金澤', name:'小松機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'TAK', city:'高松', name:'高松機場', country:'🇯🇵 日本' },
+  { region:'🇯🇵 日本', code:'MYJ', city:'松山', name:'松山機場（日本）', country:'🇯🇵 日本' },
+
+  // ── 韓國 ──────────────────────────────────
+  { region:'🇰🇷 韓國', code:'ICN', city:'首爾', name:'仁川國際機場', country:'🇰🇷 韓國' },
+  { region:'🇰🇷 韓國', code:'GMP', city:'首爾', name:'金浦國際機場', country:'🇰🇷 韓國' },
+  { region:'🇰🇷 韓國', code:'PUS', city:'釜山', name:'金海國際機場', country:'🇰🇷 韓國' },
+  { region:'🇰🇷 韓國', code:'CJU', city:'濟州島', name:'濟州國際機場', country:'🇰🇷 韓國' },
+  { region:'🇰🇷 韓國', code:'TAE', city:'大邱', name:'大邱國際機場', country:'🇰🇷 韓國' },
+
+  // ── 中國 ──────────────────────────────────
+  { region:'🇨🇳 中國', code:'PEK', city:'北京', name:'首都國際機場', country:'🇨🇳 中國' },
+  { region:'🇨🇳 中國', code:'PKX', city:'北京', name:'大興國際機場', country:'🇨🇳 中國' },
+  { region:'🇨🇳 中國', code:'PVG', city:'上海', name:'浦東國際機場', country:'🇨🇳 中國' },
+  { region:'🇨🇳 中國', code:'SHA', city:'上海', name:'虹橋國際機場', country:'🇨🇳 中國' },
+  { region:'🇨🇳 中國', code:'CAN', city:'廣州', name:'白雲國際機場', country:'🇨🇳 中國' },
+  { region:'🇨🇳 中國', code:'SZX', city:'深圳', name:'寶安國際機場', country:'🇨🇳 中國' },
+  { region:'🇨🇳 中國', code:'CTU', city:'成都', name:'天府國際機場', country:'🇨🇳 中國' },
+  { region:'🇨🇳 中國', code:'XIY', city:'西安', name:'咸陽國際機場', country:'🇨🇳 中國' },
+  { region:'🇨🇳 中國', code:'KMG', city:'昆明', name:'長水國際機場', country:'🇨🇳 中國' },
+  { region:'🇨🇳 中國', code:'XMN', city:'廈門', name:'高崎國際機場', country:'🇨🇳 中國' },
+
+  // ── 香港 / 澳門 ───────────────────────────
+  { region:'🇭🇰 港澳', code:'HKG', city:'香港', name:'香港國際機場', country:'🇭🇰 香港' },
+  { region:'🇭🇰 港澳', code:'MFM', city:'澳門', name:'澳門國際機場', country:'🇲🇴 澳門' },
+
+  // ── 東南亞 ────────────────────────────────
+  { region:'🌏 東南亞', code:'BKK', city:'曼谷', name:'素萬那普機場', country:'🇹🇭 泰國' },
+  { region:'🌏 東南亞', code:'DMK', city:'曼谷', name:'廊曼國際機場', country:'🇹🇭 泰國' },
+  { region:'🌏 東南亞', code:'HKT', city:'普吉島', name:'普吉國際機場', country:'🇹🇭 泰國' },
+  { region:'🌏 東南亞', code:'CNX', city:'清邁', name:'清邁國際機場', country:'🇹🇭 泰國' },
+  { region:'🌏 東南亞', code:'SIN', city:'新加坡', name:'樟宜國際機場', country:'🇸🇬 新加坡' },
+  { region:'🌏 東南亞', code:'KUL', city:'吉隆坡', name:'吉隆坡國際機場', country:'🇲🇾 馬來西亞' },
+  { region:'🌏 東南亞', code:'MNL', city:'馬尼拉', name:'尼諾伊機場', country:'🇵🇭 菲律賓' },
+  { region:'🌏 東南亞', code:'CEB', city:'宿霧', name:'麥克坦-宿霧機場', country:'🇵🇭 菲律賓' },
+  { region:'🌏 東南亞', code:'DPS', city:'峇里島', name:'鄧帕薩機場', country:'🇮🇩 印尼' },
+  { region:'🌏 東南亞', code:'CGK', city:'雅加達', name:'蘇加諾-哈達機場', country:'🇮🇩 印尼' },
+  { region:'🌏 東南亞', code:'SUB', city:'泗水', name:'朱安達機場', country:'🇮🇩 印尼' },
+  { region:'🌏 東南亞', code:'SGN', city:'胡志明市', name:'新山一機場', country:'🇻🇳 越南' },
+  { region:'🌏 東南亞', code:'HAN', city:'河內', name:'內排機場', country:'🇻🇳 越南' },
+  { region:'🌏 東南亞', code:'DAD', city:'峴港', name:'峴港國際機場', country:'🇻🇳 越南' },
+  { region:'🌏 東南亞', code:'RGN', city:'仰光', name:'仰光國際機場', country:'🇲🇲 緬甸' },
+  { region:'🌏 東南亞', code:'PNH', city:'金邊', name:'金邊國際機場', country:'🇰🇭 柬埔寨' },
+  { region:'🌏 東南亞', code:'REP', city:'暹粒', name:'吳哥機場', country:'🇰🇭 柬埔寨' },
+  { region:'🌏 東南亞', code:'VTE', city:'永珍', name:'瓦岱國際機場', country:'🇱🇦 寮國' },
+  { region:'🌏 東南亞', code:'BWN', city:'斯里巴加灣', name:'汶萊國際機場', country:'🇧🇳 汶萊' },
+
+  // ── 南亞 ──────────────────────────────────
+  { region:'🇮🇳 南亞', code:'DEL', city:'新德里', name:'英迪拉甘地機場', country:'🇮🇳 印度' },
+  { region:'🇮🇳 南亞', code:'BOM', city:'孟買', name:'賈特拉帕蒂機場', country:'🇮🇳 印度' },
+  { region:'🇮🇳 南亞', code:'BLR', city:'班加羅爾', name:'肯佩戈達機場', country:'🇮🇳 印度' },
+  { region:'🇮🇳 南亞', code:'CMB', city:'可倫坡', name:'卡圖納亞克機場', country:'🇱🇰 斯里蘭卡' },
+  { region:'🇮🇳 南亞', code:'DAC', city:'達卡', name:'沙阿賈拉勒機場', country:'🇧🇩 孟加拉' },
+  { region:'🇮🇳 南亞', code:'KTM', city:'加德滿都', name:'特里布萬機場', country:'🇳🇵 尼泊爾' },
+  { region:'🇮🇳 南亞', code:'MLE', city:'馬列', name:'維拉那機場', country:'🇲🇻 馬爾地夫' },
+
+  // ── 中東 ──────────────────────────────────
+  { region:'🕌 中東', code:'DXB', city:'杜拜', name:'杜拜國際機場', country:'🇦🇪 阿聯酋' },
+  { region:'🕌 中東', code:'AUH', city:'阿布達比', name:'扎耶德機場', country:'🇦🇪 阿聯酋' },
+  { region:'🕌 中東', code:'DOH', city:'杜哈', name:'哈馬德國際機場', country:'🇶🇦 卡達' },
+  { region:'🕌 中東', code:'RUH', city:'利雅德', name:'阿卜杜勒阿齊茲王機場', country:'🇸🇦 沙烏地' },
+  { region:'🕌 中東', code:'TLV', city:'特拉維夫', name:'班古里安機場', country:'🇮🇱 以色列' },
+
+  // ── 澳洲 / 紐西蘭 ─────────────────────────
+  { region:'🦘 澳紐', code:'SYD', city:'雪梨', name:'金斯福德史密斯機場', country:'🇦🇺 澳洲' },
+  { region:'🦘 澳紐', code:'MEL', city:'墨爾本', name:'墨爾本機場', country:'🇦🇺 澳洲' },
+  { region:'🦘 澳紐', code:'BNE', city:'布里斯本', name:'布里斯本機場', country:'🇦🇺 澳洲' },
+  { region:'🦘 澳紐', code:'PER', city:'柏斯', name:'柏斯機場', country:'🇦🇺 澳洲' },
+  { region:'🦘 澳紐', code:'AKL', city:'奧克蘭', name:'奧克蘭機場', country:'🇳🇿 紐西蘭' },
+  { region:'🦘 澳紐', code:'CHC', city:'基督城', name:'基督城機場', country:'🇳🇿 紐西蘭' },
+];
+
+let apMode      = 'from';  // 'from' or 'to'
+let apAnchorEl  = null;
+let apFiltered  = [];
+
+// Current selections
+let selFrom = AIRPORTS.find(a => a.code === 'TPE');
+let selTo   = AIRPORTS.find(a => a.code === 'NRT');
+
+function openAirportPicker(mode, anchorEl) {
+  apMode     = mode;
+  apAnchorEl = anchorEl;
+
+  // Position popup under field using viewport coords (fixed positioning)
+  const rect  = anchorEl.getBoundingClientRect();
+  const popup = document.getElementById('apPopup');
+  const left  = Math.min(rect.left, window.innerWidth - 390);
+  // If not enough space below, show above
+  const spaceBelow = window.innerHeight - rect.bottom - 8;
+  if (spaceBelow < 200) {
+    popup.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+    popup.style.top = 'auto';
+  } else {
+    popup.style.top  = (rect.bottom + 6) + 'px';
+    popup.style.bottom = 'auto';
+  }
+  popup.style.left = Math.max(8, left) + 'px';
+
+  // Mark active
+  document.querySelectorAll('.s-field').forEach(f => f.classList.remove('active-field'));
+  anchorEl.classList.add('active-field');
+
+  // Reset search
+  const inp = document.getElementById('apSearchInput');
+  inp.value = '';
+  filterAirports('');
+
+  document.getElementById('apOverlay').classList.add('open');
+  setTimeout(() => inp.focus(), 60);
+}
+
+function closeAirportPicker(e) {
+  if (!e || e.target === document.getElementById('apOverlay')) {
+    document.getElementById('apOverlay').classList.remove('open');
+    document.querySelectorAll('.s-field').forEach(f => f.classList.remove('active-field'));
+  }
+}
+
+function filterAirports(q) {
+  const kw = q.trim().toLowerCase();
+  const list = document.getElementById('apList');
+  list.innerHTML = '';
+
+  // Filter
+  const filtered = kw
+    ? AIRPORTS.filter(a =>
+        a.code.toLowerCase().includes(kw) ||
+        a.city.toLowerCase().includes(kw) ||
+        a.name.toLowerCase().includes(kw) ||
+        a.country.toLowerCase().includes(kw)
+      )
+    : AIRPORTS;
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="ap-no-result">找不到符合的機場<br><small>請嘗試其他關鍵字</small></div>';
+    return;
+  }
+
+  // Group by region (only when not searching)
+  const currentCode = apMode === 'from' ? selFrom.code : selTo.code;
+  const otherCode   = apMode === 'from' ? selTo.code   : selFrom.code;
+
+  if (!kw) {
+    // Grouped view
+    const regions = [];
+    const seen    = new Set();
+    filtered.forEach(a => {
+      if (!seen.has(a.region)) { seen.add(a.region); regions.push(a.region); }
+    });
+    regions.forEach(region => {
+      const items = filtered.filter(a => a.region === region);
+      const lbl = document.createElement('div');
+      lbl.className = 'ap-region-label';
+      lbl.textContent = region;
+      list.appendChild(lbl);
+      items.forEach(a => renderApItem(list, a, currentCode, otherCode));
+    });
+  } else {
+    // Flat search results
+    filtered.forEach(a => renderApItem(list, a, currentCode, otherCode));
+  }
+}
+
+function renderApItem(list, airport, currentCode, otherCode) {
+  const item = document.createElement('div');
+  item.className = 'ap-item' + (airport.code === currentCode ? ' selected' : '');
+
+  // Disable the city already chosen for the other field (same airport)
+  if (airport.code === otherCode) {
+    item.style.opacity = '.4';
+    item.style.pointerEvents = 'none';
+    item.title = '此機場已選為' + (apMode === 'from' ? '目的地' : '出發地');
+  }
+
+  item.innerHTML = `
+    <span class="ap-code">${airport.code}</span>
+    <div class="ap-info">
+      <div class="ap-city">${airport.city}${airport.hot ? '<span class="ap-hot">熱門</span>' : ''}</div>
+      <div class="ap-name">${airport.name}</div>
+    </div>
+    <span class="ap-country">${airport.country.split(' ')[0]}</span>`;
+
+  item.addEventListener('click', () => selectAirport(airport));
+  list.appendChild(item);
+}
+
+function selectAirport(airport) {
+  if (apMode === 'from') {
+    selFrom = airport;
+    document.getElementById('fromVal').textContent  = airport.city + ' (' + airport.code + ')';
+    document.getElementById('fromSub').textContent  = airport.name;
+  } else {
+    selTo = airport;
+    document.getElementById('destVal').textContent  = airport.city + ' (' + airport.code + ')';
+    document.getElementById('destSub').textContent  = airport.name;
+    // Update hint tags
+    const hintMap = { 'NRT':'🗼','HND':'🗼','KIX':'🏯','ICN':'🎎','BKK':'🌴','DPS':'🌺','SIN':'🦁','HKG':'🌃' };
+  }
+
+  // Update result header
+  const hdr = document.querySelector('.result-title');
+  if (hdr) {
+    const dm = (selDep.m + 1) + '/' + selDep.d;
+    const rm = (selRet.m + 1) + '/' + selRet.d;
+    hdr.textContent = selFrom.city + ' → ' + selTo.city + ' ✈ ' + dm + '–' + rm;
+  }
+
+  showToast('✈ ' + (apMode === 'from' ? '出發地' : '目的地') + '：' + airport.city + ' ' + airport.code);
+  closeAirportPicker();
+}
+
+// ── Swap cities ──
+function swapCities() {
+  const tmp = selFrom;
+  selFrom = selTo;
+  selTo   = tmp;
+  document.getElementById('fromVal').textContent = selFrom.city + ' (' + selFrom.code + ')';
+  document.getElementById('fromSub').textContent = selFrom.name;
+  document.getElementById('destVal').textContent = selTo.city   + ' (' + selTo.code   + ')';
+  document.getElementById('destSub').textContent = selTo.name;
+  showToast('🔄 出發地與目的地已對調');
+}
+
+// ════════════════════════════════════════════
+// TRAVELPAYOUTS API 整合
+// ════════════════════════════════════════════
+const TP_TOKEN_KEY = 'tp_token';
+// 預設使用已取得的 Token（使用者可在設定中更換）
+const TP_DEFAULT_TOKEN = 'b9724bfb20709ea5c567c3b8cfcb7f0d';
+let tpToken = localStorage.getItem(TP_TOKEN_KEY) || TP_DEFAULT_TOKEN;
+
+// 航空公司代碼對照
+const AIRLINE_CODES = {
+  'BR':'長榮航空','CI':'中華航空','JX':'星宇航空','IT':'台灣虎航',
+  'JL':'日本航空','NH':'全日空','CX':'國泰航空','SQ':'新加坡航空',
+  'TG':'泰國航空','MH':'馬來西亞航空','AK':'亞洲航空','VJ':'越捷航空',
+  'OZ':'韓亞航空','KE':'大韓航空','CA':'中國國際航空','MU':'中國東方航空',
+  'HX':'香港航空','EK':'阿聯酋航空','QR':'卡達航空','TK':'土耳其航空',
+  'BX':'首爾航空','TW':'德威航空','ZE':'易斯達航空','RS':'首爾航空'
+};
+const AIRLINE_LOGOS = {
+  'BR':'🌿','CI':'🌺','JX':'⭐','IT':'🐯','JL':'🔴','NH':'🌸',
+  'CX':'🟢','SQ':'🦅','TG':'🌹','MH':'🇲🇾','AK':'🔴','VJ':'⚡',
+  'OZ':'🌀','KE':'🔵','EK':'✨','QR':'🌙','TK':'🌙','BX':'🌊'
+};
+
+// ── 頁面載入時自動套用 Token ──
+document.addEventListener('DOMContentLoaded', function() {
+  localStorage.setItem(TP_TOKEN_KEY, tpToken);
+  const inp = document.getElementById('apiKeyInput');
+  if (inp) inp.value = tpToken;
+  // 有 token 就顯示即時模式
+  document.getElementById('demoBanner').style.display = 'none';
+  document.getElementById('liveBanner').style.display = '';
+});
+
+// ── API Modal 開關 ──
+function openApiModal() {
+  const inp = document.getElementById('apiKeyInput');
+  if (inp) inp.value = tpToken;
+  document.getElementById('apiModalOverlay').classList.add('open');
+}
+function closeApiModal(e) {
+  if (!e || e.target === document.getElementById('apiModalOverlay')) {
+    document.getElementById('apiModalOverlay').classList.remove('open');
+    document.getElementById('apiStatus').innerHTML = '';
+  }
+}
+
+// ── 儲存並測試 API ──
+async function saveAndTestApi() {
+  const token = document.getElementById('apiKeyInput').value.trim();
+  const statusEl = document.getElementById('apiStatus');
+  if (!token) { statusEl.innerHTML = '<span style="color:#dc2626">⚠ 請輸入 API Token</span>'; return; }
+  statusEl.innerHTML = '⏳ 測試連線中…';
+  try {
+    const url = `https://api.travelpayouts.com/v1/prices/cheap?origin=TPE&destination=TYO&token=${token}&currency=twd`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if (data.success === false) throw new Error('Token 無效');
+    statusEl.innerHTML = '<span style="color:#16a34a">✅ 連線成功！Travelpayouts API 已啟用</span>';
+    tpToken = token;
+    localStorage.setItem(TP_TOKEN_KEY, token);
+    setTimeout(() => {
+      closeApiModal();
+      document.getElementById('demoBanner').style.display = 'none';
+      document.getElementById('liveBanner').style.display = '';
+      showToast('✅ Travelpayouts API 已啟用，可搜尋即時票價！');
+    }, 1200);
+  } catch(err) {
+    if (err.name === 'TypeError' || err.message.includes('fetch')) {
+      // CORS 限制（本地端開啟時正常）
+      tpToken = token;
+      localStorage.setItem(TP_TOKEN_KEY, token);
+      statusEl.innerHTML = '<span style="color:#f59e0b">⚠ Token 已儲存。本地端 CORS 限制，部署到伺服器後即可取得即時資料。</span>';
+      setTimeout(() => {
+        closeApiModal();
+        document.getElementById('demoBanner').style.display = 'none';
+        document.getElementById('liveBanner').style.display = '';
+      }, 2200);
+    } else {
+      statusEl.innerHTML = `<span style="color:#dc2626">❌ 連線失敗：${err.message}</span>`;
+    }
+  }
+}
+
+// ── 主搜尋函式 ──
+async function doSearch() {
+  const origin  = selFrom ? selFrom.code : 'TPE';
+  const dest    = selTo   ? selTo.code   : 'NRT';
+  const depDate = `${selDep.y}-${String(selDep.m+1).padStart(2,'0')}-${String(selDep.d).padStart(2,'0')}`;
+  const retDate = `${selRet.y}-${String(selRet.m+1).padStart(2,'0')}-${String(selRet.d).padStart(2,'0')}`;
+
+  // 顯示 loading
+  const loading = document.getElementById('searchLoading');
+  loading.style.display = 'flex';
+  document.getElementById('loadingSubText').textContent = `${selFrom ? selFrom.city : origin} → ${selTo ? selTo.city : dest} 搜尋中…`;
+  const btn = document.querySelector('.btn-search-main');
+  if (btn) btn.innerHTML = '<span>⏳</span><span>搜尋中…</span>';
+
+  try {
+    const results = await searchWithTravelpayouts(tpToken, origin, dest, depDate, retDate);
+    if (results && results.flights && results.flights.length > 0) {
+      renderRealFlights(results.flights, origin, dest);
+      if (results.calPrices && Object.keys(results.calPrices).length > 0) {
+        updateCalendarPrices(results.calPrices);
+      }
+      updateResultHeader(origin, dest);
+      showToast(`✅ 找到 ${results.flights.length} 個航班！資料來源：Travelpayouts`);
+    } else {
+      showToast('⚠️ 此航線暫無 API 資料，顯示參考資料');
+    }
+  } catch(err) {
+    console.warn('API search error:', err);
+    if (err.name === 'TypeError') {
+      showToast('⚠️ 本地端 CORS 限制，顯示參考資料（部署後可取得即時票價）');
+    } else {
+      showToast('⚠️ 搜尋遇到問題，顯示參考資料');
+    }
+    updateResultHeader(origin, dest);
+  } finally {
+    loading.style.display = 'none';
+    if (btn) btn.innerHTML = '<span>🔍</span><span>搜尋</span>';
+  }
+}
+
+// ── Travelpayouts API 呼叫 ──
+async function searchWithTravelpayouts(token, origin, dest, depDate, retDate) {
+  const depMonth = depDate.slice(0, 7);
+  const retMonth = retDate.slice(0, 7);
+  const currency = 'twd';
+
+  // 同時呼叫多個端點
+  const [cheapRes, directRes, calRes] = await Promise.allSettled([
+    fetch(`https://api.travelpayouts.com/v1/prices/cheap?origin=${origin}&destination=${dest}&depart_date=${depMonth}&return_date=${retMonth}&token=${token}&currency=${currency}`),
+    fetch(`https://api.travelpayouts.com/v1/prices/direct?origin=${origin}&destination=${dest}&depart_date=${depMonth}&return_date=${retMonth}&token=${token}&currency=${currency}`),
+    fetch(`https://api.travelpayouts.com/v2/prices/month-matrix?origin=${origin}&destination=${dest}&month=${depMonth}-01&token=${token}&currency=${currency}`)
+  ]);
+
+  let flights = [];
+  let calPrices = {};
+
+  // 解析最便宜票價
+  if (cheapRes.status === 'fulfilled' && cheapRes.value.ok) {
+    const data = await cheapRes.value.json();
+    if (data && data.data) {
+      const destKey = Object.keys(data.data)[0];
+      if (destKey && data.data[destKey]) {
+        flights = Object.entries(data.data[destKey]).map(([num, f]) => ({
+          airline:   f.airline  || '',
+          price:     f.price    || 0,
+          depart:    f.departure_at || '',
+          returnAt:  f.return_at || '',
+          transfers: f.transfers || 0,
+          flightNo:  f.flight_number_departure || '',
+          link:      f.link || ''
+        }));
+      }
+    }
+  }
+
+  // 解析直飛票價（若有）
+  if (flights.length === 0 && directRes.status === 'fulfilled' && directRes.value.ok) {
+    const data = await directRes.value.json();
+    if (data && data.data) {
+      const destKey = Object.keys(data.data)[0];
+      if (destKey && data.data[destKey]) {
+        const depart = data.data[destKey].depart_date;
+        if (depart && depart.price) {
+          flights.push({
+            airline:   depart.airline  || '',
+            price:     depart.price    || 0,
+            depart:    depart.departure_at || '',
+            returnAt:  '',
+            transfers: 0,
+            flightNo:  depart.flight_number_departure || ''
+          });
+        }
+      }
+    }
+  }
+
+  // 解析月曆票價
+  if (calRes.status === 'fulfilled' && calRes.value.ok) {
+    const data = await calRes.value.json();
+    if (data && data.data && Array.isArray(data.data)) {
+      data.data.forEach(item => {
+        if (item.depart_date && item.price) {
+          const day = parseInt(item.depart_date.slice(8, 10));
+          calPrices[day] = item.price;
+        }
+      });
+    }
+  }
+
+  return { flights, calPrices };
+}
+
+// ── 渲染即時航班 ──
+function renderRealFlights(flights, origin, dest) {
+  flights.sort((a, b) => a.price - b.price);
+
+  const fromCity = selFrom ? selFrom.city : origin;
+  const toCity   = selTo   ? selTo.city   : dest;
+
+  // 更新 AI 推薦 Banner
+  if (flights.length > 0) {
+    const best = flights[0];
+    const name  = AIRLINE_CODES[best.airline] || best.airline || '未知航空';
+    const price = Math.round(best.price);
+    document.getElementById('aiBanner').innerHTML = `
+      <div class="ai-badge">🤖 AI</div>
+      <div class="ai-content">
+        <div class="ai-title">最佳推薦：${name}，單程最低 NT$${price.toLocaleString()}</div>
+        <div class="ai-sub">即時資料・Travelpayouts・${flights.length} 個航班組合</div>
+      </div>
+      <div class="ai-price">NT$${price.toLocaleString()}</div>`;
+  }
+
+  // 渲染去程航班
+  const outEl = document.getElementById('outFlights');
+  outEl.innerHTML = '';
+  flights.slice(0, 5).forEach(f => renderFlightCard(f, origin, dest, 'out', outEl));
+
+  // 渲染回程航班（同航空公司回程）
+  const retEl = document.getElementById('retFlights');
+  retEl.innerHTML = '';
+  flights.slice(0, 3).forEach(f => {
+    const retF = Object.assign({}, f, {
+      price: Math.round(f.price * 0.92),
+      depart: f.returnAt || f.depart,
+      returnAt: f.depart
+    });
+    renderFlightCard(retF, dest, origin, 'ret', retEl);
+  });
+}
+
+function renderFlightCard(f, fromCode, toCode, dir, container) {
+  const name     = AIRLINE_CODES[f.airline] || f.airline || '未知航空';
+  const logo     = AIRLINE_LOGOS[f.airline] || '✈';
+  const price    = Math.round(f.price);
+  const stops    = f.transfers === 0 ? '直飛' : f.transfers + ' 次轉機';
+  const badge    = f.transfers === 0
+    ? '<span class="badge direct">✈ 直飛</span>'
+    : '<span class="badge" style="background:#fee2e2;color:#dc2626">🔄 轉機</span>';
+  let depTimeStr = '--:--';
+  if (f.depart) {
+    try {
+      const d = new Date(f.depart);
+      if (!isNaN(d)) depTimeStr = d.toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
+    } catch(e) {}
+  }
+  const fromCity = (selFrom && dir==='out') ? selFrom.city : (selTo ? selTo.city : fromCode);
+  const toCity   = (selTo   && dir==='out') ? selTo.city   : (selFrom ? selFrom.city : toCode);
+
+  const card = document.createElement('div');
+  card.className = 'flight-card fade-in';
+  card.innerHTML = `
+    <div class="airline-logo" style="font-size:22px;">${logo}</div>
+    <div class="flight-info">
+      <div class="flight-times">${depTimeStr}<span class="arrow"> → </span>--:--</div>
+      <div class="flight-meta">
+        <span>${name}${f.flightNo ? ' ' + f.flightNo : ''}</span>
+        <span>${fromCode} → ${toCode}</span>
+      </div>
+    </div>
+    <div class="flight-duration">
+      <div class="dur-line"><span>✈</span><div class="dur-dash"></div></div>
+      <div>---</div><div class="dur-label">${stops}</div>
+    </div>
+    <div class="flight-badges">${badge}</div>
+    <div class="flight-price">
+      <div class="price">NT$${price.toLocaleString()}</div>
+      <div class="price-sub">單人含稅・即時</div>
+      <button class="btn-select" onclick="bookFlight('${name}','${f.flightNo||''}')">官網訂票 →</button>
+    </div>`;
+  container.appendChild(card);
+}
+
+// ── 更新月曆票價顏色 ──
+function updateCalendarPrices(calPrices) {
+  const cells = document.querySelectorAll('#calGrid .cal-cell:not(.disabled)');
+  cells.forEach(cell => {
+    const dayEl = cell.querySelector('.c-day');
+    if (!dayEl) return;
+    const day = parseInt(dayEl.textContent);
+    if (calPrices[day]) {
+      const p = calPrices[day];
+      const cls = p < 5000 ? 'low' : p < 10000 ? 'mid' : 'high';
+      const wasSel = cell.classList.contains('selected');
+      cell.className = 'cal-cell ' + cls + (wasSel ? ' selected' : '');
+      const priceEl = cell.querySelector('.c-price');
+      if (priceEl) priceEl.textContent = p >= 1000 ? (p/1000).toFixed(1) + 'K' : p;
+    }
+  });
+}
+
+// ── 更新結果標題 ──
+function updateResultHeader(origin, dest) {
+  const hdr = document.querySelector('.result-title');
+  if (!hdr) return;
+  const fromCity = selFrom ? selFrom.city : origin;
+  const toCity   = selTo   ? selTo.city   : dest;
+  const dm = `${selDep.m+1}/${selDep.d}`;
+  const rm = `${selRet.m+1}/${selRet.d}`;
+  hdr.textContent = `${fromCity} → ${toCity} ✈ ${dm}–${rm}`;
+}
+
+// ── Sort ──
+function setSort(btn) {
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  showToast('排序方式：' + btn.textContent);
+}
+
+// ── Select flight ──
+function selectFlight(btn, dir) {
+  const section = dir === 'out' ? document.querySelectorAll('#outFlights .flight-card') : document.querySelectorAll('#retFlights .flight-card');
+  section.forEach(c => {
+    const b = c.querySelector('.btn-select');
+    if (b) { b.textContent = '選擇'; b.className = 'btn-select outline'; }
+  });
+  btn.textContent = '已選 ✓';
+  btn.className = 'btn-select';
+  showToast('✓ 航班已加入行程');
+}
+
+// ── Show more flights ──
+function showMoreFlights(dir, btn) {
+  const extras = [
+    { times: '18:00 → 22:40', airline: '日本航空 JL820', price: 'NT$4,200', logo: '🔴', dur: '3h 40m' },
+    { times: '20:30 → 01:10+1', airline: '全日空 NH852', price: 'NT$4,580', logo: '🌸', dur: '3h 40m' }
+  ];
+  const container = document.getElementById(dir === 'out' ? 'outFlights' : 'retFlights');
+  extras.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'flight-card fade-in';
+    card.innerHTML = `
+      <div class="airline-logo">${f.logo}</div>
+      <div class="flight-info">
+        <div class="flight-times">${f.times.replace(' → ','<span class="arrow"> → </span>')}</div>
+        <div class="flight-meta"><span>${f.airline}</span><span>桃園 TPE → 成田 NRT</span></div>
+      </div>
+      <div class="flight-duration">
+        <div class="dur-line"><span>✈</span><div class="dur-dash"></div></div>
+        <div>${f.dur}</div><div class="dur-label">直飛</div>
+      </div>
+      <div class="flight-badges"><span class="badge direct">✈ 直飛</span></div>
+      <div class="flight-price">
+        <div class="price">${f.price}</div>
+        <div class="price-sub">單人含稅</div>
+        <button class="btn-select outline" onclick="selectFlight(this,'${dir}')">選擇</button>
+      </div>`;
+    container.appendChild(card);
+  });
+  btn.style.display = 'none';
+  showToast('✅ 已載入更多航班');
+}
+
+// ── Price Calendar ──
+(function buildCal() {
+  const prices = [null,null,null,null,null,null,null,
+    3200,4100,5800,6200,3645,3100,2980,
+    3900,4200,3300,3050,3900,5600,6100,
+    3400,3200,3100,4500,4800,5200,6400,
+    3100,2950,3800,null];
+  const labels = ['日','一','二','三','四','五','六'];
+  const grid = document.getElementById('calGrid');
+  prices.forEach((p, i) => {
+    const cell = document.createElement('div');
+    if (!p) { cell.className = 'cal-cell disabled'; cell.innerHTML = '<div class="c-day" style="color:#ccc;">' + (i < 7 ? ['30','31','1','2','3','4','5'][i] : '—') + '</div>'; }
+    else {
+      const day = i - 6;
+      const cls = p < 3500 ? 'low' : p < 5000 ? 'mid' : 'high';
+      cell.className = 'cal-cell ' + cls + (day === 18 ? ' selected' : '');
+      cell.innerHTML = '<div class="c-day">' + day + '</div><div class="c-price">' + (p >= 1000 ? (p/1000).toFixed(1) + 'K' : p) + '</div>';
+      cell.onclick = () => {
+        document.querySelectorAll('.cal-cell').forEach(c => c.classList.remove('selected'));
+        cell.classList.add('selected');
+        selDep = { y: 2026, m: 6, d: day };
+        document.getElementById('depDate').textContent = '2026 年 7 月 ' + day + ' 日';
+        const wd = new Date(2026, 6, day).getDay();
+        document.getElementById('depSub').textContent = '週' + ['日','一','二','三','四','五','六'][wd];
+        updateNights();
+        showToast('📅 去程日期選為 7 月 ' + day + ' 日');
+      };
+    }
+    grid.appendChild(cell);
+  });
+})();
+
+// ── Flight Detail Modal ──
+function openDetail(airline, flight, dep, arr, dur, stops, base, tax, baggage, total) {
+  document.getElementById('modalBody').innerHTML = `
+    <div class="detail-row"><span class="key">航空公司</span><span class="val">${airline}</span></div>
+    <div class="detail-row"><span class="key">航班號碼</span><span class="val">${flight}</span></div>
+    <div class="detail-row"><span class="key">出發時間</span><span class="val">${dep} (台北桃園)</span></div>
+    <div class="detail-row"><span class="key">抵達時間</span><span class="val">${arr} (東京成田)</span></div>
+    <div class="detail-row"><span class="key">飛行時間</span><span class="val">${dur}</span></div>
+    <div class="detail-row"><span class="key">轉機次數</span><span class="val">${stops}</span></div>
+    <div class="detail-row"><span class="key">艙等</span><span class="val">經濟艙 Economy</span></div>
+    <div style="margin-top:14px;margin-bottom:6px;font-size:12px;font-weight:700;color:var(--brand);text-transform:uppercase;letter-spacing:.8px;">費用明細</div>
+    <div class="fee-breakdown">
+      <div class="fee-row"><span>基本票價</span><span>${base}</span></div>
+      <div class="fee-row"><span>機場稅 / 燃油附加費</span><span>${tax}</span></div>
+      <div class="fee-row"><span>行李費 (20kg)</span><span>${baggage === 'NT$0' ? '<span style="color:#16a34a;">免費</span>' : baggage}</span></div>
+      <div class="fee-row fee-total"><span>合計（單人）</span><span style="color:var(--brand)">${total}</span></div>
+    </div>
+    <div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:8px 12px;font-size:11px;color:#854d0e;margin-bottom:10px;">
+      ⚠️ 以上票價為原型模擬資料，請至航空公司官網查詢即時票價。
+    </div>
+    <button class="btn-book-main" style="width:100%;justify-content:center;margin-top:4px;"
+      onclick="bookFlight('${airline}','${flight}');closeModal()">
+      🎫 前往 ${airline} 官網訂票
+    </button>`;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function openModal() { openDetail('長榮航空','BR2198','07:30','11:55','3h 25m','直飛','NT$3,645','NT$400','NT$0','NT$4,045');}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modalOverlay')) {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ── Alert ──
+function setAlert() { showToast('🔔 降價通知已設定！低於目標價立即通知您'); }
+
+// ── Scroll to alert ──
+function scrollToAlert() { document.getElementById('alertSection').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+
+// ── Nav link toggle ──
+document.querySelectorAll('.nav-link').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// ── Toast ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
