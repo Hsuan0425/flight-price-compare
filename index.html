@@ -1358,7 +1358,7 @@ footer ul li a:hover { color: #fff; }
           </div>
           <div class="combo-bags-row" id="cdOutBags">🧳 含 20kg 托運行李 × 1件</div>
           <button class="combo-book-btn out" id="cdOutBtn"
-            onclick="bookFlight('長榮航空','BR2198')">
+            onclick="bookFlight('長榮航空','BR2198','out')">
             🎫 長榮航空官網訂票
           </button>
         </div>
@@ -1393,7 +1393,7 @@ footer ul li a:hover { color: #fff; }
           </div>
           <div class="combo-bags-row" id="cdRetBags">🧳 含 20kg 托運行李 × 1件</div>
           <button class="combo-book-btn ret" id="cdRetBtn"
-            onclick="bookFlight('中華航空','CI220')">
+            onclick="bookFlight('中華航空','CI220','ret')">
             🎫 中華航空官網訂票
           </button>
         </div>
@@ -2092,19 +2092,26 @@ const AIRLINE_URLS = {
   '大韓航空':   { url: 'https://www.koreanair.com/', en: 'Korean Air' },
 };
 
-function bookFlight(airlineName, flightNo) {
-  const info = AIRLINE_URLS[airlineName];
-  if (info) {
-    window.open(info.url, '_blank', 'noopener');
-    showToast('✈ 已開啟 ' + airlineName + ' 訂票頁面');
+// 訂票：連到航空公司官網，長榮可帶入機場代碼
+function bookFlight(airlineName, flightNo, dir) {
+  const from = selFrom ? selFrom.code : 'TPE';
+  const to   = selTo   ? selTo.code   : 'NRT';
+  let url;
+
+  if (airlineName === '長榮航空') {
+    // 長榮支援 URL 帶入出發地/目的地
+    const dep = dir === 'ret' ? to   : from;
+    const arr = dir === 'ret' ? from : to;
+    url = 'https://booking.evaair.com/flyeva/eva/b2c/booking-online.aspx?lang=zh-tw&x-depCity=' + dep + '&x-desCity=' + arr;
+  } else if (airlineName === '中華航空') {
+    url = 'https://booking.china-airlines.com/booking/Index?country=tw&locale=zh';
   } else {
-    // Fallback: search Google Flights
-    const dest = selTo ? selTo.code : 'TYO';
-    const dep  = selFrom ? selFrom.code : 'TPE';
-    const url  = 'https://www.google.com/travel/flights?q=' + encodeURIComponent(dep + ' to ' + dest);
-    window.open(url, '_blank', 'noopener');
-    showToast('✈ 已開啟 Google Flights 搜尋');
+    const info = AIRLINE_URLS[airlineName];
+    url = info ? info.url : 'https://www.google.com/travel/flights';
   }
+
+  window.open(url, '_blank', 'noopener');
+  showToast('✈ 已開啟 ' + airlineName + ' 訂票頁面');
 }
 
 const AIRPORTS = [
@@ -2666,7 +2673,7 @@ function updateComboDetail(outF, retF, origin, dest) {
   document.getElementById('cdOutStops').textContent   = '';
   document.getElementById('cdOutBags').innerHTML      = bagsLabel(outF);
   document.getElementById('cdOutBtn').textContent     = '🎫 ' + outName + '官網訂票';
-  document.getElementById('cdOutBtn').onclick         = () => bookFlight(outName, outF.flightNo || '');
+  document.getElementById('cdOutBtn').onclick         = () => bookFlight(outName, outF.flightNo || '', 'out');
 
   // 回程
   document.getElementById('cdRetLogo').textContent    = retLogo;
@@ -2680,7 +2687,7 @@ function updateComboDetail(outF, retF, origin, dest) {
   document.getElementById('cdRetStops').textContent   = '';
   document.getElementById('cdRetBags').innerHTML      = bagsLabel(retF);
   document.getElementById('cdRetBtn').textContent     = '🎫 ' + retName + '官網訂票';
-  document.getElementById('cdRetBtn').onclick         = () => bookFlight(retName, retF.flightNo || '');
+  document.getElementById('cdRetBtn').onclick         = () => bookFlight(retName, retF.flightNo || '', 'ret');
 }
 
 function renderFlightCard(f, fromCode, toCode, dir, container) {
@@ -2720,7 +2727,7 @@ function renderFlightCard(f, fromCode, toCode, dir, container) {
     <div class="flight-price">
       <div class="price">NT$${price.toLocaleString()}</div>
       <div class="price-sub">單人含稅・即時</div>
-      <button class="btn-select" onclick="bookFlight('${name}','${f.flightNo||''}')">官網訂票 →</button>
+      <button class="btn-select" onclick="bookFlight('${name}','${f.flightNo||''}','${dir}')">官網訂票 →</button>
     </div>`;
   container.appendChild(card);
 }
