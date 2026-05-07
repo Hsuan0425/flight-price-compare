@@ -1211,11 +1211,11 @@ footer ul li a:hover { color: #fff; }
 <!-- ══════════════ PRICE STATUS BANNER ══════════════ -->
 <div id="demoBanner" class="demo-banner">
   <span>⚠️</span>
-  <span><strong>模擬資料模式：</strong>目前顯示模擬票價。點右上角 <strong>⚙ API 設定</strong> 確認 Travelpayouts Token，即可切換為真實即時票價。</span>
+  <span><strong>參考資料模式：</strong>目前顯示示範票價與省錢流程。點右上角 <strong>⚙ API 設定</strong> 可讀取 Travelpayouts 近期搜尋快取票價。</span>
 </div>
 <div id="liveBanner" class="api-live-banner" style="display:none;">
   <span>🟢</span>
-  <span><strong>即時票價模式：</strong>已連線 Travelpayouts API，按下搜尋即可取得真實票價。</span>
+  <span><strong>近期參考價模式：</strong>已連線 Travelpayouts Data API。價格來自近期搜尋快取，最終成交價仍以跳轉平台結帳頁為準。</span>
 </div>
 
 <!-- ══════════════ HERO ══════════════ -->
@@ -1230,7 +1230,7 @@ footer ul li a:hover { color: #fff; }
       <div class="trip-tabs">
         <button class="trip-tab active" onclick="setTripType('roundtrip', this)">🔄 來回票</button>
         <button class="trip-tab" onclick="setTripType('oneway', this)">➡️ 單程</button>
-        <button class="trip-tab" onclick="setTripType('multi', this)">🗺️ 多城市</button>
+        <button class="trip-tab" onclick="setTripType('multi', this)">🗺️ 多城市（規劃中）</button>
       </div>
 
       <!-- Search Row -->
@@ -1272,8 +1272,8 @@ footer ul li a:hover { color: #fff; }
         <span class="hint-tag" onclick="setDest('曼谷','BKK','素萬那普')">🌴 曼谷</span>
         <span class="hint-tag" onclick="setDest('巴黎','CDG','戴高樂')">🗼 巴黎</span>
         <span class="hint-tag" onclick="setDest('峇里島','DPS','鄧帕薩')">🌺 峇里島</span>
-        <span class="hint-tag">📅 彈性日期</span>
-        <span class="hint-tag">💰 最低票價月</span>
+        <span class="hint-tag" onclick="showToast('📅 彈性日期目前為價格日曆參考，請改日期後重新比價')">📅 彈性日期</span>
+        <span class="hint-tag" onclick="showToast('💰 最低票價月為規劃功能，目前請使用價格日曆比對')">💰 最低票價月</span>
       </div>
     </div>
   </div>
@@ -1287,7 +1287,7 @@ footer ul li a:hover { color: #fff; }
 
     <!-- Sort & Filter label -->
     <div class="filter-card">
-      <h3>篩選條件</h3>
+      <h3>篩選條件（規劃中）</h3>
 
       <div class="section-label">轉機次數</div>
       <div class="filter-row">
@@ -1325,7 +1325,7 @@ footer ul li a:hover { color: #fff; }
       </div>
 
       <div class="divider" style="margin:12px 0;"></div>
-      <div class="section-label">票價範圍（單人含稅）</div>
+        <div class="section-label">票價範圍（參考價）</div>
       <div class="range-wrap">
         <div class="range-labels"><span>NT$2,000</span><span id="rangeVal">NT$8,000</span></div>
         <input type="range" min="2000" max="15000" value="8000" oninput="document.getElementById('rangeVal').textContent='NT$'+Number(this.value).toLocaleString()">
@@ -1374,21 +1374,21 @@ footer ul li a:hover { color: #fff; }
     <div class="ai-banner fade-in" id="aiBanner">
       <div class="ai-icon">🤖</div>
       <div class="ai-body">
-        <div class="ai-badge">AI 最優組合</div>
-        <div class="ai-criteria">綜合最低總價 · 直飛優先 · 合理時間</div>
+        <div class="ai-badge">省錢參考組合</div>
+        <div class="ai-criteria">依參考價排序 · 直飛優先 · 需至平台確認成交價</div>
         <div class="ai-title" id="aiBannerTitle">長榮 07:30 去 + 華航 15:20 回</div>
-        <div class="ai-desc" id="aiBannerDesc">比其他去回程組合便宜 NT$1,840 · 全程直飛 · 無需轉機</div>
+        <div class="ai-desc" id="aiBannerDesc">示範資料・用來比較去回程組合，最終價格以平台結帳頁為準</div>
         <div class="ai-tags">
-          <span class="ai-tag green">✓ 全程直飛</span>
-          <span class="ai-tag green">🧳 含 20kg 行李</span>
-          <span class="ai-tag orange">📈 建議現在訂</span>
-          <span class="ai-tag red">🔥 剩 4 席</span>
+          <span class="ai-tag green">✓ 直飛優先</span>
+          <span class="ai-tag green">🧳 行李需確認</span>
+          <span class="ai-tag orange">📈 先比價再訂</span>
+          <span class="ai-tag red">⚠ 票價會變動</span>
         </div>
       </div>
       <div class="ai-price-col">
         <div class="ai-price" id="aiBannerPrice">NT$7,290</div>
-        <div class="ai-price-sub">來回含稅 · 1 人</div>
-        <div class="ai-save" id="aiBannerSave">↓ 省 NT$1,840</div>
+        <div class="ai-price-sub" id="aiPriceSub">參考來回價 · 1 人</div>
+        <div class="ai-save" id="aiBannerSave">需至平台確認</div>
         <button class="btn-book-main" onclick="openModal()">🎫 查看詳情</button>
       </div>
     </div>
@@ -1423,7 +1423,7 @@ footer ul li a:hover { color: #fff; }
               <div class="combo-t-airport" id="cdOutArrApt">東京成田<br>NRT</div>
             </div>
           </div>
-          <div class="combo-bags-row" id="cdOutBags">🧳 含 20kg 托運行李 × 1件</div>
+          <div class="combo-bags-row" id="cdOutBags">🧳 行李方案需至平台確認</div>
         </div>
 
         <!-- 分隔線 -->
@@ -1454,7 +1454,7 @@ footer ul li a:hover { color: #fff; }
               <div class="combo-t-airport" id="cdRetArrApt">台北桃園<br>TPE</div>
             </div>
           </div>
-          <div class="combo-bags-row" id="cdRetBags">🧳 含 20kg 托運行李 × 1件</div>
+          <div class="combo-bags-row" id="cdRetBags">🧳 行李方案需至平台確認</div>
         </div>
 
       </div>
@@ -1462,7 +1462,7 @@ footer ul li a:hover { color: #fff; }
 
     <!-- Channel Compare -->
     <div class="channel-wrap" id="channelWrap" style="display:none">
-      <div class="channel-header">🔍 各平台查詢 — 點擊帶入航班資訊，前往各平台查看即時價格</div>
+      <div class="channel-header">🔍 各平台查詢 — 點擊帶入路線與日期，前往各平台確認最終成交價</div>
       <div class="channel-list">
 
         <div class="channel-row">
@@ -1477,8 +1477,8 @@ footer ul li a:hover { color: #fff; }
         <div class="channel-row">
           <div class="channel-icon" style="background:#fff3e0;">🟠</div>
           <div class="channel-info">
-            <div class="channel-name">Trip.com <span class="channel-tag cheap">通常最便宜</span></div>
-            <div class="channel-desc">亞洲航線折扣多・支援繁體中文客服</div>
+            <div class="channel-name">Trip.com <span class="channel-tag cheap">常有促銷</span></div>
+            <div class="channel-desc">可能有折扣・請確認手續費、行李與退改規則</div>
           </div>
           <button class="channel-btn" onclick="openChannel('trip')">查詢 →</button>
         </div>
@@ -1511,7 +1511,7 @@ footer ul li a:hover { color: #fff; }
         </div>
 
       </div>
-      <div class="channel-note">💡 各平台顯示即時價格，以各平台頁面為準。票價與餘位隨時變動，建議看到低價立即購買。OTA（旅行社）通常最便宜，但退改票彈性較差；官網稍貴但服務最有保障。</div>
+      <div class="channel-note">💡 本站價格為參考價或近期搜尋快取，不保證可成交。請以 Google Flights、OTA 或航空公司官網結帳頁為準，並確認行李、付款手續費、退改票與是否分開開票。</div>
     </div>
 
     <!-- Price Calendar -->
@@ -1559,7 +1559,7 @@ footer ul li a:hover { color: #fff; }
           <div class="flight-badges">
             <span class="badge lowest">🏷 最低價</span>
             <span class="badge direct">✈ 直飛</span>
-            <span class="badge baggage">🧳 含行李</span>
+            <span class="badge baggage">🧳 行李待確認</span>
           </div>
           <div class="flight-price">
             <div class="price">NT$3,645</div>
@@ -1609,7 +1609,7 @@ footer ul li a:hover { color: #fff; }
           </div>
           <div class="flight-badges">
             <span class="badge direct">✈ 直飛</span>
-            <span class="badge baggage">🧳 含行李</span>
+            <span class="badge baggage">🧳 行李待確認</span>
           </div>
           <div class="flight-price">
             <div class="price">NT$3,890</div>
@@ -1674,7 +1674,7 @@ footer ul li a:hover { color: #fff; }
           </div>
           <div class="flight-badges">
             <span class="badge lowest">🏷 最低價</span>
-            <span class="badge baggage">🧳 含行李</span>
+            <span class="badge baggage">🧳 行李待確認</span>
           </div>
           <div class="flight-price">
             <div class="price">NT$3,645</div>
@@ -1700,7 +1700,7 @@ footer ul li a:hover { color: #fff; }
           <div class="flight-badges">
             <span class="badge recmd">⭐ AI 推薦</span>
             <span class="badge direct">✈ 直飛</span>
-            <span class="badge baggage">🧳 含行李</span>
+            <span class="badge baggage">🧳 行李待確認</span>
           </div>
           <div class="flight-price">
             <div class="price">NT$3,720</div>
@@ -1734,7 +1734,7 @@ footer ul li a:hover { color: #fff; }
         </div>
 
       </div>
-      <button class="show-more-btn">＋ 顯示更多回程航班（6 個）</button>
+      <button class="show-more-btn" onclick="showMoreFlights('ret', this)">＋ 顯示更多回程航班（6 個）</button>
     </div>
 
     <!-- Price Trend -->
@@ -1765,7 +1765,7 @@ footer ul li a:hover { color: #fff; }
         <span>4/7</span><span>4/14</span><span>4/21</span><span>4/28</span><span>5/5</span><span>今天</span>
       </div>
       <div class="buy-signal">
-        ✅ AI 分析：目前票價比過去 30 天平均低 18%，<strong>建議現在訂票</strong>，預測下週將上漲。
+        ✅ 省錢提醒：此趨勢圖為示範分析。實際採購時請同時比較前後 3 天、不同機場與行李費，看到可接受總價再下單。
       </div>
     </div>
 
@@ -1840,7 +1840,7 @@ footer ul li a:hover { color: #fff; }
   <div class="footer-inner">
     <div>
       <div class="footer-logo">✈ 旅遊趣</div>
-      <div class="footer-desc">整合全台 20+ 航空公司票價，<br>AI 智慧推薦最優來回組合，<br>讓每次旅行都更划算。</div>
+      <div class="footer-desc">整理近期參考票價與比價入口，<br>協助比較去回程組合與通路，<br>讓每次旅行都更有把握。</div>
     </div>
     <div>
       <h4>探索</h4>
@@ -1894,7 +1894,7 @@ footer ul li a:hover { color: #fff; }
 <div class="api-modal-overlay" id="apiModalOverlay" onclick="closeApiModal(event)">
   <div class="api-modal">
     <h2>⚙ Travelpayouts API 設定</h2>
-    <p class="api-sub">Token 只存在瀏覽器本機，不會上傳任何伺服器。設定後即可搜尋即時票價。</p>
+    <p class="api-sub">Token 只存在瀏覽器本機，不會上傳任何伺服器。Travelpayouts Data API 為近期搜尋快取，非保證可成交票價。</p>
     <div class="api-hint">
       Token 取得位置：<a href="https://app.travelpayouts.com/profile/api-token" target="_blank">app.travelpayouts.com → Profile → API token</a>
     </div>
@@ -1913,8 +1913,8 @@ footer ul li a:hover { color: #fff; }
 <!-- Search Loading Overlay -->
 <div class="search-loading" id="searchLoading">
   <div class="spinner"></div>
-  <div class="loading-text">正在搜尋即時票價…</div>
-  <div class="loading-sub" id="loadingSubText">連線 Travelpayouts API 中</div>
+  <div class="loading-text">正在搜尋參考票價…</div>
+  <div class="loading-sub" id="loadingSubText">連線 Travelpayouts Data API 中</div>
 </div>
 
 <!-- Airport Picker Popup -->
@@ -2175,6 +2175,10 @@ function syncHeroCalendar() {
 
 // ── Trip type toggle ──
 function setTripType(type, btn) {
+  if (type === 'multi') {
+    showToast('🗺️ 多城市比價仍在規劃中，目前先支援來回與單程參考查詢');
+    return;
+  }
   document.querySelectorAll('.trip-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   const retField = document.getElementById('retDateField');
@@ -2595,8 +2599,8 @@ function swapCities() {
 // TRAVELPAYOUTS API 整合
 // ════════════════════════════════════════════
 const TP_TOKEN_KEY = 'tp_token';
-// 預設使用已取得的 Token（使用者可在設定中更換）
-const TP_DEFAULT_TOKEN = 'b9724bfb20709ea5c567c3b8cfcb7f0d';
+// Public GitHub Pages cannot safely ship an API token. Users can add their own token locally.
+const TP_DEFAULT_TOKEN = '';
 let tpToken = localStorage.getItem(TP_TOKEN_KEY) || TP_DEFAULT_TOKEN;
 
 function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
@@ -2623,12 +2627,10 @@ const AIRLINE_LOGOS = {
 
 // ── 頁面載入時自動套用 Token ──
 document.addEventListener('DOMContentLoaded', function() {
-  localStorage.setItem(TP_TOKEN_KEY, tpToken);
   const inp = document.getElementById('apiKeyInput');
   if (inp) inp.value = tpToken;
-  // 有 token 就顯示即時模式
-  document.getElementById('demoBanner').style.display = 'none';
-  document.getElementById('liveBanner').style.display = '';
+  document.getElementById('demoBanner').style.display = tpToken ? 'none' : '';
+  document.getElementById('liveBanner').style.display = tpToken ? '' : 'none';
 });
 
 // ── API Modal 開關 ──
@@ -2656,21 +2658,21 @@ async function saveAndTestApi() {
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
     if (data.success === false) throw new Error('Token 無效');
-    statusEl.innerHTML = '<span style="color:#16a34a">✅ 連線成功！Travelpayouts API 已啟用</span>';
+    statusEl.innerHTML = '<span style="color:#16a34a">✅ 連線成功！近期參考價資料已啟用</span>';
     tpToken = token;
     localStorage.setItem(TP_TOKEN_KEY, token);
     setTimeout(() => {
       closeApiModal();
       document.getElementById('demoBanner').style.display = 'none';
       document.getElementById('liveBanner').style.display = '';
-      showToast('✅ Travelpayouts API 已啟用，可搜尋即時票價！');
+      showToast('✅ 已啟用 Travelpayouts 近期參考價搜尋');
     }, 1200);
   } catch(err) {
     if (err.name === 'TypeError' || err.name === 'AbortError' || err.message.includes('fetch')) {
       // CORS 限制（本地端開啟時正常）
       tpToken = token;
       localStorage.setItem(TP_TOKEN_KEY, token);
-      statusEl.innerHTML = '<span style="color:#f59e0b">⚠ Token 已儲存。本地端 CORS 限制，部署到伺服器後即可取得即時資料。</span>';
+      statusEl.innerHTML = '<span style="color:#f59e0b">⚠ Token 已儲存。若瀏覽器或 CORS 限制阻擋，搜尋會回到參考資料模式。</span>';
       setTimeout(() => {
         closeApiModal();
         document.getElementById('demoBanner').style.display = 'none';
@@ -2689,6 +2691,13 @@ async function doSearch() {
   const depDate = `${selDep.y}-${String(selDep.m+1).padStart(2,'0')}-${String(selDep.d).padStart(2,'0')}`;
   const retDate = `${selRet.y}-${String(selRet.m+1).padStart(2,'0')}-${String(selRet.d).padStart(2,'0')}`;
 
+  if (!tpToken) {
+    updateResultHeader(origin, dest);
+    showNoApiResults(origin, dest, '請先在 API 設定中輸入 Travelpayouts Token');
+    showToast('⚠️ 尚未設定 API Token，無法讀取 Travelpayouts 資料');
+    return;
+  }
+
   // 顯示 loading
   const loading = document.getElementById('searchLoading');
   loading.style.display = 'flex';
@@ -2704,18 +2713,21 @@ async function doSearch() {
         updateCalendarPrices(results.calPrices);
       }
       updateResultHeader(origin, dest);
-      showToast(`✅ 找到 ${results.flights.length} 個航班！資料來源：Travelpayouts`);
+      showToast(`✅ 找到 ${results.flights.length} 筆參考票價！資料來源：Travelpayouts 快取`);
     } else {
-      showToast('⚠️ 此航線暫無 API 資料，顯示參考資料');
+      updateResultHeader(origin, dest);
+      showNoApiResults(origin, dest, '此航線/日期目前沒有 Travelpayouts 快取票價');
+      showToast('⚠️ 此航線/日期暫無 API 快取票價');
     }
   } catch(err) {
     console.warn('API search error:', err);
     if (err.name === 'TypeError' || err.name === 'AbortError') {
-      showToast('⚠️ 本地端 CORS 限制，顯示參考資料（部署後可取得即時票價）');
+      showToast('⚠️ API 或 CORS 限制，顯示參考資料');
     } else {
       showToast('⚠️ 搜尋遇到問題，顯示參考資料');
     }
     updateResultHeader(origin, dest);
+    showNoApiResults(origin, dest, 'API 搜尋失敗，請稍後重試或改用各平台查詢');
   } finally {
     loading.style.display = 'none';
     if (btn) btn.innerHTML = '<span>🔍</span><span>搜尋</span>';
@@ -2725,14 +2737,14 @@ async function doSearch() {
 // ── Travelpayouts API 呼叫 ──
 async function searchWithTravelpayouts(token, origin, dest, depDate, retDate) {
   const depMonth = depDate.slice(0, 7);
-  const retMonth = retDate.slice(0, 7);
   const currency = 'twd';
+  const market = 'tw';
 
-  // 同時呼叫多個端點
+  // 同時呼叫多個端點。cheap/direct 使用完整日期，避免只查月份導致結果看起來不變。
   const [cheapRes, directRes, calRes] = await Promise.allSettled([
-    fetchWithTimeout(`https://api.travelpayouts.com/v1/prices/cheap?origin=${origin}&destination=${dest}&depart_date=${depMonth}&return_date=${retMonth}&token=${token}&currency=${currency}`),
-    fetchWithTimeout(`https://api.travelpayouts.com/v1/prices/direct?origin=${origin}&destination=${dest}&depart_date=${depMonth}&return_date=${retMonth}&token=${token}&currency=${currency}`),
-    fetchWithTimeout(`https://api.travelpayouts.com/v2/prices/month-matrix?origin=${origin}&destination=${dest}&month=${depMonth}-01&token=${token}&currency=${currency}`)
+    fetchWithTimeout(`https://api.travelpayouts.com/v1/prices/cheap?origin=${origin}&destination=${dest}&depart_date=${depDate}&return_date=${retDate}&token=${token}&currency=${currency}&market=${market}`),
+    fetchWithTimeout(`https://api.travelpayouts.com/v1/prices/direct?origin=${origin}&destination=${dest}&depart_date=${depDate}&return_date=${retDate}&token=${token}&currency=${currency}&market=${market}`),
+    fetchWithTimeout(`https://api.travelpayouts.com/v2/prices/month-matrix?origin=${origin}&destination=${dest}&month=${depMonth}-01&token=${token}&currency=${currency}&market=${market}`)
   ]);
 
   let flights = [];
@@ -2751,7 +2763,9 @@ async function searchWithTravelpayouts(token, origin, dest, depDate, retDate) {
           returnAt:  f.return_at || '',
           transfers: f.transfers || 0,
           flightNo:  f.flight_number_departure || '',
-          link:      f.link || ''
+          link:      f.link || '',
+          foundAt:   f.found_at || '',
+          actual:    f.actual
         }));
       }
     }
@@ -2771,7 +2785,9 @@ async function searchWithTravelpayouts(token, origin, dest, depDate, retDate) {
             depart:    depart.departure_at || '',
             returnAt:  '',
             transfers: 0,
-            flightNo:  depart.flight_number_departure || ''
+            flightNo:  depart.flight_number_departure || '',
+            foundAt:   depart.found_at || '',
+            actual:    depart.actual
           });
         }
       }
@@ -2794,7 +2810,31 @@ async function searchWithTravelpayouts(token, origin, dest, depDate, retDate) {
   return { flights, calPrices };
 }
 
-// ── 渲染即時航班 ──
+function showNoApiResults(origin, dest, message) {
+  bestComboData = null;
+  const titleEl = document.getElementById('aiBannerTitle');
+  const descEl  = document.getElementById('aiBannerDesc');
+  const priceEl = document.getElementById('aiBannerPrice');
+  const priceSubEl = document.getElementById('aiPriceSub');
+  const saveEl  = document.getElementById('aiBannerSave');
+  if (titleEl) titleEl.textContent = '目前沒有可用的 API 票價';
+  if (descEl)  descEl.textContent  = message + '。請改日期/航點，或用下方平台查詢最終成交價。';
+  if (priceEl) priceEl.textContent = '--';
+  if (priceSubEl) priceSubEl.textContent = '無 API 快取資料';
+  if (saveEl)  saveEl.textContent = '未顯示示範航班';
+
+  document.getElementById('comboDetailWrap').style.display = 'none';
+  document.getElementById('channelWrap').style.display = '';
+  const outEl = document.getElementById('outFlights');
+  const retEl = document.getElementById('retFlights');
+  const empty = `<div class="flight-card"><div class="flight-info"><div class="flight-times">${message}</div><div class="flight-meta"><span>${origin} → ${dest}</span><span>Travelpayouts Data API 無快取結果</span></div></div></div>`;
+  if (outEl) outEl.innerHTML = empty;
+  if (retEl) retEl.innerHTML = empty.replace(`${origin} → ${dest}`, `${dest} → ${origin}`);
+  const count = document.querySelector('.result-count');
+  if (count) count.textContent = 'Travelpayouts API：0 筆快取票價';
+}
+
+// ── 渲染 API 航班/參考票價 ──
 function renderRealFlights(flights, origin, dest) {
   flights.sort((a, b) => a.price - b.price);
 
@@ -2814,11 +2854,14 @@ function renderRealFlights(flights, origin, dest) {
     const titleEl = document.getElementById('aiBannerTitle');
     const descEl  = document.getElementById('aiBannerDesc');
     const priceEl = document.getElementById('aiBannerPrice');
+    const priceSubEl = document.getElementById('aiPriceSub');
     const saveEl  = document.getElementById('aiBannerSave');
     if (titleEl) titleEl.textContent = outName + ' 去 + ' + retName2 + ' 回';
-    if (descEl)  descEl.textContent  = '即時資料・' + flights.length + ' 個航班組合・Travelpayouts';
+    const foundLabel = best.foundAt ? '・找到時間 ' + new Date(best.foundAt).toLocaleString('zh-TW') : '';
+    if (descEl)  descEl.textContent  = 'Travelpayouts API 快取・' + flights.length + ' 筆票價' + foundLabel + '・最終以平台結帳頁為準';
     if (priceEl) priceEl.textContent = 'NT$' + comboPrice.toLocaleString();
-    if (saveEl)  saveEl.textContent  = savings > 0 ? '↓ 省 NT$' + savings.toLocaleString() : '✓ 即時最低價';
+    if (priceSubEl) priceSubEl.textContent = 'API 快取參考價';
+    if (saveEl)  saveEl.textContent  = savings > 0 ? '較樣本均價低 NT$' + savings.toLocaleString() : '需至平台確認';
 
     // 儲存最優組合資料供 openModal 使用
     const retF2 = Object.assign({}, retSrc2, {
@@ -2832,6 +2875,8 @@ function renderRealFlights(flights, origin, dest) {
   // 搜尋完成後才顯示去回程明細與通路比較區塊
   document.getElementById('comboDetailWrap').style.display = '';
   document.getElementById('channelWrap').style.display = '';
+  const count = document.querySelector('.result-count');
+  if (count) count.textContent = `Travelpayouts API：${flights.length} 筆快取票價`;
 
   // 更新去回程明細卡
   const outF = flights[0];
@@ -2868,7 +2913,7 @@ function updateComboDetail(outF, retF, origin, dest) {
     return '--:--';
   }
   function stopsLabel(f) { return f.transfers === 0 ? '直飛' : f.transfers + '次轉機'; }
-  function bagsLabel(f)  { return f.transfers === 0 ? '🧳 含 20kg 托運行李 × 1件' : '🧳 請至官網確認行李方案'; }
+  function bagsLabel(f)  { return f.transfers === 0 ? '🧳 行李方案需至平台確認' : '🧳 請至官網確認行李方案'; }
 
   const outName = AIRLINE_CODES[outF.airline] || outF.airline || '未知航空';
   const retName = AIRLINE_CODES[retF.airline] || retF.airline || '未知航空';
@@ -2950,7 +2995,7 @@ function renderFlightCard(f, fromCode, toCode, dir, container) {
     <div class="flight-badges">${badge}</div>
     <div class="flight-price">
       <div class="price">NT$${price.toLocaleString()}</div>
-      <div class="price-sub">單人含稅・即時</div>
+      <div class="price-sub">近期參考價・需確認</div>
       <button class="btn-select" onclick="bookFlight('${name}','${f.flightNo||''}','${dir}')">官網訂票 →</button>
     </div>`;
   container.appendChild(card);
@@ -2989,7 +3034,11 @@ function updateResultHeader(origin, dest) {
 function setSort(btn) {
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  showToast('排序方式：' + btn.textContent);
+  showToast('排序方式：' + btn.textContent + '（示範排序，成交價請至平台確認）');
+}
+
+function toggleFlights(dir) {
+  showToast('顯示全部航班為示範功能；請用各平台查詢完整班表與成交價');
 }
 
 // ── Select flight ──
@@ -3086,7 +3135,7 @@ function openDetail(airline, flight, dep, arr, dur, stops, base, tax, baggage, t
       <div class="fee-row fee-total"><span>合計（單人）</span><span style="color:var(--brand)">${total}</span></div>
     </div>
     <div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:8px 12px;font-size:11px;color:#854d0e;margin-bottom:10px;">
-      ⚠️ 以上票價為原型模擬資料，請至航空公司官網查詢即時票價。
+      ⚠️ 以上為參考票價與示範費用明細，可能不含行李、付款手續費或退改票差異；請以平台結帳頁最終價格為準。
     </div>
     <button class="btn-book-main" style="width:100%;justify-content:center;margin-top:4px;"
       onclick="bookFlight('${airline}','${flight}');closeModal()">
@@ -3128,7 +3177,7 @@ function closeModal(e) {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 // ── Alert ──
-function setAlert() { showToast('🔔 降價通知已設定！低於目標價立即通知您'); }
+function setAlert() { showToast('🔔 降價通知目前為示範功能，尚未串接 Email 發送'); }
 
 // ── Scroll to alert ──
 function scrollToAlert() { document.getElementById('alertSection').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
