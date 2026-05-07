@@ -2599,6 +2599,13 @@ const TP_TOKEN_KEY = 'tp_token';
 const TP_DEFAULT_TOKEN = 'b9724bfb20709ea5c567c3b8cfcb7f0d';
 let tpToken = localStorage.getItem(TP_TOKEN_KEY) || TP_DEFAULT_TOKEN;
 
+function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(timer));
+}
+
 // 航空公司代碼對照
 const AIRLINE_CODES = {
   'BR':'長榮航空','CI':'中華航空','JX':'星宇航空','IT':'台灣虎航',
@@ -2645,7 +2652,7 @@ async function saveAndTestApi() {
   statusEl.innerHTML = '⏳ 測試連線中…';
   try {
     const url = `https://api.travelpayouts.com/v1/prices/cheap?origin=TPE&destination=TYO&token=${token}&currency=twd`;
-    const resp = await fetch(url);
+    const resp = await fetchWithTimeout(url, {}, 6000);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
     if (data.success === false) throw new Error('Token 無效');
@@ -2659,7 +2666,7 @@ async function saveAndTestApi() {
       showToast('✅ Travelpayouts API 已啟用，可搜尋即時票價！');
     }, 1200);
   } catch(err) {
-    if (err.name === 'TypeError' || err.message.includes('fetch')) {
+    if (err.name === 'TypeError' || err.name === 'AbortError' || err.message.includes('fetch')) {
       // CORS 限制（本地端開啟時正常）
       tpToken = token;
       localStorage.setItem(TP_TOKEN_KEY, token);
@@ -2703,7 +2710,7 @@ async function doSearch() {
     }
   } catch(err) {
     console.warn('API search error:', err);
-    if (err.name === 'TypeError') {
+    if (err.name === 'TypeError' || err.name === 'AbortError') {
       showToast('⚠️ 本地端 CORS 限制，顯示參考資料（部署後可取得即時票價）');
     } else {
       showToast('⚠️ 搜尋遇到問題，顯示參考資料');
@@ -2723,9 +2730,9 @@ async function searchWithTravelpayouts(token, origin, dest, depDate, retDate) {
 
   // 同時呼叫多個端點
   const [cheapRes, directRes, calRes] = await Promise.allSettled([
-    fetch(`https://api.travelpayouts.com/v1/prices/cheap?origin=${origin}&destination=${dest}&depart_date=${depMonth}&return_date=${retMonth}&token=${token}&currency=${currency}`),
-    fetch(`https://api.travelpayouts.com/v1/prices/direct?origin=${origin}&destination=${dest}&depart_date=${depMonth}&return_date=${retMonth}&token=${token}&currency=${currency}`),
-    fetch(`https://api.travelpayouts.com/v2/prices/month-matrix?origin=${origin}&destination=${dest}&month=${depMonth}-01&token=${token}&currency=${currency}`)
+    fetchWithTimeout(`https://api.travelpayouts.com/v1/prices/cheap?origin=${origin}&destination=${dest}&depart_date=${depMonth}&return_date=${retMonth}&token=${token}&currency=${currency}`),
+    fetchWithTimeout(`https://api.travelpayouts.com/v1/prices/direct?origin=${origin}&destination=${dest}&depart_date=${depMonth}&return_date=${retMonth}&token=${token}&currency=${currency}`),
+    fetchWithTimeout(`https://api.travelpayouts.com/v2/prices/month-matrix?origin=${origin}&destination=${dest}&month=${depMonth}-01&token=${token}&currency=${currency}`)
   ]);
 
   let flights = [];
