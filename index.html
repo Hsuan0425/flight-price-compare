@@ -1693,6 +1693,20 @@ footer ul li a:hover { color: #fff; }
 <!-- ══════════════ SCRIPTS ══════════════ -->
 <script>
 // ════════════════════════════════════════════
+// TOAST NOTIFICATION
+// ════════════════════════════════════════════
+let _toastTimer = null;
+function showToast(msg, duration) {
+  duration = duration || 2500;
+  var el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function() { el.classList.remove('show'); }, duration);
+}
+
+// ════════════════════════════════════════════
 // DATE PICKER ENGINE
 // ════════════════════════════════════════════
 const WEEKDAYS_TW = ['日','一','二','三','四','五','六'];
