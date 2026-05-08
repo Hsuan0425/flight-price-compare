@@ -2613,11 +2613,9 @@ const AIRLINE_LOGOS = {
   'OZ':'🌀','KE':'🔵','EK':'✨','QR':'🌙','TK':'🌙','BX':'🌊'
 };
 
-// ── 頁面載入 ──
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('demoBanner').style.display = 'none';
-  document.getElementById('liveBanner').style.display = '';
-});
+// ── 頁面載入（script 在 body 底部，DOM 已就緒，直接執行）──
+document.getElementById('demoBanner').style.display = 'none';
+document.getElementById('liveBanner').style.display = '';
 
 // ── API Modal 開關（現為資料來源說明） ──
 function openApiModal() {
