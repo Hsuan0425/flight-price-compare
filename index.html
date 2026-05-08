@@ -1211,11 +1211,11 @@ footer ul li a:hover { color: #fff; }
 <!-- ══════════════ PRICE STATUS BANNER ══════════════ -->
 <div id="demoBanner" class="demo-banner">
   <span>⚠️</span>
-  <span><strong>模擬資料模式：</strong>目前顯示模擬票價。點右上角 <strong>⚙ API 設定</strong> 確認 Travelpayouts Token，即可切換為真實即時票價。</span>
+  <span><strong>載入中…</strong></span>
 </div>
 <div id="liveBanner" class="api-live-banner" style="display:none;">
   <span>🟢</span>
-  <span><strong>即時票價模式：</strong>已連線 Travelpayouts API，按下搜尋即可取得真實票價。</span>
+  <span><strong>即時票價模式：</strong>已串接 FlightAPI，比較 700+ 航空公司即時票價，每次搜尋約需 10 秒。</span>
 </div>
 
 <!-- ══════════════ HERO ══════════════ -->
@@ -1893,19 +1893,14 @@ footer ul li a:hover { color: #fff; }
 <!-- API Settings Modal -->
 <div class="api-modal-overlay" id="apiModalOverlay" onclick="closeApiModal(event)">
   <div class="api-modal">
-    <h2>⚙ Travelpayouts API 設定</h2>
-    <p class="api-sub">Token 只存在瀏覽器本機，不會上傳任何伺服器。設定後即可搜尋即時票價。</p>
+    <h2>ℹ️ 關於資料來源</h2>
+    <p class="api-sub">本網站透過 FlightAPI.io 取得即時機票資料，合法授權資料，不涉及爬蟲。</p>
     <div class="api-hint">
-      Token 取得位置：<a href="https://app.travelpayouts.com/profile/api-token" target="_blank">app.travelpayouts.com → Profile → API token</a>
-    </div>
-    <div class="api-field">
-      <label>API Token</label>
-      <input type="text" id="apiKeyInput" placeholder="貼上你的 Travelpayouts API Token...">
+      涵蓋 700+ 家航空公司與 OTA 平台，包含長榮、華航、星宇、台灣虎航、Trip.com、Expedia 等。每次搜尋約需 10 秒，請耐心等候。比價結果僅供參考，最終票價以各訂票平台結帳頁為準。
     </div>
     <div class="api-status" id="apiStatus"></div>
     <div class="api-btn-row">
-      <button class="api-save-btn" onclick="saveAndTestApi()">✅ 儲存並測試連線</button>
-      <button class="api-cancel-btn" onclick="closeApiModal()">取消</button>
+      <button class="api-cancel-btn" onclick="closeApiModal()">關閉</button>
     </div>
   </div>
 </div>
@@ -1914,7 +1909,7 @@ footer ul li a:hover { color: #fff; }
 <div class="search-loading" id="searchLoading">
   <div class="spinner"></div>
   <div class="loading-text">正在搜尋即時票價…</div>
-  <div class="loading-sub" id="loadingSubText">連線 Travelpayouts API 中</div>
+  <div class="loading-sub" id="loadingSubText">正在比對 700+ 航空公司即時票價…</div>
 </div>
 
 <!-- Airport Picker Popup -->
@@ -2592,14 +2587,11 @@ function swapCities() {
 }
 
 // ════════════════════════════════════════════
-// TRAVELPAYOUTS API 整合
+// FLIGHTAPI.IO 整合
 // ════════════════════════════════════════════
-const TP_TOKEN_KEY = 'tp_token';
-// 預設使用已取得的 Token（使用者可在設定中更換）
-const TP_DEFAULT_TOKEN = 'b9724bfb20709ea5c567c3b8cfcb7f0d';
-let tpToken = localStorage.getItem(TP_TOKEN_KEY) || TP_DEFAULT_TOKEN;
+const FAPI_KEY = '69fd70ff0c15cd5b233acc48';
 
-function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+function fetchWithTimeout(url, options = {}, timeoutMs = 25000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   return fetch(url, { ...options, signal: controller.signal })
@@ -2621,20 +2613,14 @@ const AIRLINE_LOGOS = {
   'OZ':'🌀','KE':'🔵','EK':'✨','QR':'🌙','TK':'🌙','BX':'🌊'
 };
 
-// ── 頁面載入時自動套用 Token ──
+// ── 頁面載入 ──
 document.addEventListener('DOMContentLoaded', function() {
-  localStorage.setItem(TP_TOKEN_KEY, tpToken);
-  const inp = document.getElementById('apiKeyInput');
-  if (inp) inp.value = tpToken;
-  // 有 token 就顯示即時模式
   document.getElementById('demoBanner').style.display = 'none';
   document.getElementById('liveBanner').style.display = '';
 });
 
-// ── API Modal 開關 ──
+// ── API Modal 開關（現為資料來源說明） ──
 function openApiModal() {
-  const inp = document.getElementById('apiKeyInput');
-  if (inp) inp.value = tpToken;
   document.getElementById('apiModalOverlay').classList.add('open');
 }
 function closeApiModal(e) {
@@ -2644,42 +2630,10 @@ function closeApiModal(e) {
   }
 }
 
-// ── 儲存並測試 API ──
-async function saveAndTestApi() {
-  const token = document.getElementById('apiKeyInput').value.trim();
-  const statusEl = document.getElementById('apiStatus');
-  if (!token) { statusEl.innerHTML = '<span style="color:#dc2626">⚠ 請輸入 API Token</span>'; return; }
-  statusEl.innerHTML = '⏳ 測試連線中…';
-  try {
-    const url = `https://api.travelpayouts.com/v1/prices/cheap?origin=TPE&destination=TYO&token=${token}&currency=twd`;
-    const resp = await fetchWithTimeout(url, {}, 6000);
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const data = await resp.json();
-    if (data.success === false) throw new Error('Token 無效');
-    statusEl.innerHTML = '<span style="color:#16a34a">✅ 連線成功！Travelpayouts API 已啟用</span>';
-    tpToken = token;
-    localStorage.setItem(TP_TOKEN_KEY, token);
-    setTimeout(() => {
-      closeApiModal();
-      document.getElementById('demoBanner').style.display = 'none';
-      document.getElementById('liveBanner').style.display = '';
-      showToast('✅ Travelpayouts API 已啟用，可搜尋即時票價！');
-    }, 1200);
-  } catch(err) {
-    if (err.name === 'TypeError' || err.name === 'AbortError' || err.message.includes('fetch')) {
-      // CORS 限制（本地端開啟時正常）
-      tpToken = token;
-      localStorage.setItem(TP_TOKEN_KEY, token);
-      statusEl.innerHTML = '<span style="color:#f59e0b">⚠ Token 已儲存。本地端 CORS 限制，部署到伺服器後即可取得即時資料。</span>';
-      setTimeout(() => {
-        closeApiModal();
-        document.getElementById('demoBanner').style.display = 'none';
-        document.getElementById('liveBanner').style.display = '';
-      }, 2200);
-    } else {
-      statusEl.innerHTML = `<span style="color:#dc2626">❌ 連線失敗：${err.message}</span>`;
-    }
-  }
+// ── Google Flights 導流 ──
+function openGoogleFlights(origin, dest, depDate, retDate) {
+  const url = `https://www.google.com/travel/flights?q=flights+${origin}+to+${dest}+${depDate}+return+${retDate}`;
+  window.open(url, '_blank');
 }
 
 // ── 主搜尋函式 ──
@@ -2689,43 +2643,28 @@ async function doSearch() {
   const depDate = `${selDep.y}-${String(selDep.m+1).padStart(2,'0')}-${String(selDep.d).padStart(2,'0')}`;
   const retDate = `${selRet.y}-${String(selRet.m+1).padStart(2,'0')}-${String(selRet.d).padStart(2,'0')}`;
 
-  // Token 未設定：直接提示，不打 API
-  if (!tpToken) {
-    const titleEl = document.getElementById('aiBannerTitle');
-    const descEl  = document.getElementById('aiBannerDesc');
-    if (titleEl) titleEl.textContent = '尚未設定 API Token';
-    if (descEl)  descEl.textContent  = '請點右上角「API 設定」輸入 Travelpayouts Token 後再搜尋';
-    bestComboData = null;
-    showToast('⚠ 請先設定 Travelpayouts API Token');
-    return;
-  }
-
-  // 顯示 loading
+  // 顯示 loading（FlightAPI 約需 10 秒）
   const loading = document.getElementById('searchLoading');
   loading.style.display = 'flex';
-  document.getElementById('loadingSubText').textContent = `${selFrom ? selFrom.city : origin} → ${selTo ? selTo.city : dest} 搜尋中…`;
+  document.getElementById('loadingSubText').textContent =
+    `${selFrom ? selFrom.city : origin} → ${selTo ? selTo.city : dest}，正在比對 700+ 航空公司…`;
   const btn = document.querySelector('.btn-search-main');
   if (btn) btn.innerHTML = '<span>⏳</span><span>搜尋中…</span>';
 
   try {
-    const results = await searchWithTravelpayouts(tpToken, origin, dest, depDate, retDate);
+    const results = await searchWithFlightAPI(origin, dest, depDate, retDate);
     if (results && results.flights && results.flights.length > 0) {
       renderRealFlights(results.flights, origin, dest);
-      if (results.calPrices && Object.keys(results.calPrices).length > 0) {
-        updateCalendarPrices(results.calPrices);
-      }
       updateResultHeader(origin, dest);
-      showToast(`✅ 找到 ${results.flights.length} 個航班！資料來源：Travelpayouts`);
+      showToast(`✅ 找到 ${results.flights.length} 個組合！資料來源：FlightAPI`);
     } else {
-      showToast('⚠️ 此航線暫無 API 資料，顯示參考資料');
+      showNoFlightsMessage(origin, dest);
+      showToast('⚠️ 此航線暫無即時票價，請嘗試其他日期');
     }
   } catch(err) {
-    console.warn('API search error:', err);
-    if (err.name === 'TypeError' || err.name === 'AbortError') {
-      showToast('⚠️ 本地端 CORS 限制，顯示參考資料（部署後可取得即時票價）');
-    } else {
-      showToast('⚠️ 搜尋遇到問題，顯示參考資料');
-    }
+    console.warn('FlightAPI error:', err);
+    showNoFlightsMessage(origin, dest);
+    showToast('⚠️ 搜尋遇到問題，請稍後再試');
     updateResultHeader(origin, dest);
   } finally {
     loading.style.display = 'none';
@@ -2733,235 +2672,209 @@ async function doSearch() {
   }
 }
 
-// ── Travelpayouts API 呼叫 ──
-async function searchWithTravelpayouts(token, origin, dest, depDate, retDate) {
-  const depMonth = depDate.slice(0, 7); // 月曆熱點圖仍使用月份
-  const currency = 'twd';
-
-  // 同時呼叫多個端點（cheap/direct 使用完整日期，month-matrix 使用月份）
-  const [cheapRes, directRes, calRes] = await Promise.allSettled([
-    fetchWithTimeout(`https://api.travelpayouts.com/v1/prices/cheap?origin=${origin}&destination=${dest}&depart_date=${depDate}&return_date=${retDate}&token=${token}&currency=${currency}`),
-    fetchWithTimeout(`https://api.travelpayouts.com/v1/prices/direct?origin=${origin}&destination=${dest}&depart_date=${depDate}&return_date=${retDate}&token=${token}&currency=${currency}`),
-    fetchWithTimeout(`https://api.travelpayouts.com/v2/prices/month-matrix?origin=${origin}&destination=${dest}&month=${depMonth}-01&token=${token}&currency=${currency}`)
-  ]);
-
-  let flights = [];
-  let calPrices = {};
-
-  // 解析最便宜票價
-  if (cheapRes.status === 'fulfilled' && cheapRes.value.ok) {
-    const data = await cheapRes.value.json();
-    if (data && data.data) {
-      const destKey = Object.keys(data.data)[0];
-      if (destKey && data.data[destKey]) {
-        flights = Object.entries(data.data[destKey]).map(([num, f]) => ({
-          airline:   f.airline  || '',
-          price:     f.price    || 0,
-          depart:    f.departure_at || '',
-          returnAt:  f.return_at || '',
-          transfers: f.transfers || 0,
-          flightNo:  f.flight_number_departure || '',
-          link:      f.link || ''
-        }));
-      }
-    }
-  }
-
-  // 解析直飛票價（若有）
-  if (flights.length === 0 && directRes.status === 'fulfilled' && directRes.value.ok) {
-    const data = await directRes.value.json();
-    if (data && data.data) {
-      const destKey = Object.keys(data.data)[0];
-      if (destKey && data.data[destKey]) {
-        const depart = data.data[destKey].depart_date;
-        if (depart && depart.price) {
-          flights.push({
-            airline:   depart.airline  || '',
-            price:     depart.price    || 0,
-            depart:    depart.departure_at || '',
-            returnAt:  '',
-            transfers: 0,
-            flightNo:  depart.flight_number_departure || ''
-          });
-        }
-      }
-    }
-  }
-
-  // 解析月曆票價
-  if (calRes.status === 'fulfilled' && calRes.value.ok) {
-    const data = await calRes.value.json();
-    if (data && data.data && Array.isArray(data.data)) {
-      data.data.forEach(item => {
-        if (item.depart_date && item.price) {
-          const day = parseInt(item.depart_date.slice(8, 10));
-          calPrices[day] = item.price;
-        }
-      });
-    }
-  }
-
-  return { flights, calPrices };
+function showNoFlightsMessage(origin, dest) {
+  const titleEl = document.getElementById('aiBannerTitle');
+  const descEl  = document.getElementById('aiBannerDesc');
+  const priceEl = document.getElementById('aiBannerPrice');
+  const saveEl  = document.getElementById('aiBannerSave');
+  if (titleEl) titleEl.textContent = '暫無即時票價';
+  if (descEl)  descEl.textContent  = `${origin} → ${dest} 此日期目前無資料，請嘗試其他日期`;
+  if (priceEl) priceEl.textContent = '--';
+  if (saveEl)  saveEl.textContent  = '';
+  bestComboData = null;
 }
 
-// ── 渲染即時航班 ──
-function renderRealFlights(flights, origin, dest) {
-  flights.sort((a, b) => a.price - b.price);
+// ── FlightAPI.io 搜尋 ──
+async function searchWithFlightAPI(origin, dest, depDate, retDate) {
+  const url = `https://api.flightapi.io/roundtrip/${FAPI_KEY}/${origin}/${dest}/${depDate}/${retDate}/1/0/0/Economy/TWD/TW`;
+  const resp = await fetchWithTimeout(url, {}, 25000);
+  if (!resp.ok) throw new Error(`FlightAPI HTTP ${resp.status}`);
+  const data = await resp.json();
 
+  if (!data.itineraries || data.itineraries.length === 0) return { flights: [] };
+
+  // 建立 carriers 名稱查找表
+  const carriersMap = {};
+  if (data.carriers) {
+    Object.values(data.carriers).forEach(c => {
+      if (c && c.name) carriersMap[c.name] = c.name;
+    });
+  }
+  const carrierNames = Object.values(data.carriers || {}).map(c => c.name).filter(Boolean);
+
+  // 解析 itineraries → 標準化 flight 物件
+  const flights = data.itineraries
+    .filter(it => it.pricing_options && it.pricing_options.length > 0)
+    .slice(0, 40)
+    .map(it => {
+      const legParts = (it.id || '').split('|');
+      const outInfo  = parseLegId(legParts[0] || '');
+      const retInfo  = parseLegId(legParts[1] || '');
+      const bestOpt  = it.pricing_options[0];
+      const price    = Math.round(bestOpt.price?.amount || 0);
+      // 從 carriers 挑第一個名稱顯示（無法精確對應，顯示路線涵蓋航空）
+      const carrierName = carrierNames[0] || '多家航空';
+      return {
+        price,
+        outDep:   outInfo.dep,
+        outArr:   outInfo.arr,
+        outStops: outInfo.stops,
+        outDate:  depDate,
+        retDep:   retInfo.dep,
+        retArr:   retInfo.arr,
+        retStops: retInfo.stops,
+        retDate,
+        carrierName,
+        origin,
+        dest
+      };
+    })
+    .filter(f => f.price > 0)
+    .sort((a, b) => a.price - b.price);
+
+  return { flights, carrierNames };
+}
+
+// ── 解析 Leg ID → 時刻資訊 ──
+// Format: {originId}-{YYMMDDHHMI}-{-carrier}-{stops}-{destId}-{YYMMDDHHMI}
+// e.g. 17075-2607010230--32164-1-14788-2607012115
+function parseLegId(legId) {
+  if (!legId) return { dep: '--:--', arr: '--:--', stops: 0 };
+  const p = legId.split('-');
+  function timeStr(s) {
+    if (!s || s.length < 4) return '--:--';
+    const hr = s.slice(s.length - 4, s.length - 2);
+    const mi = s.slice(s.length - 2);
+    if (isNaN(parseInt(hr)) || isNaN(parseInt(mi))) return '--:--';
+    return hr.padStart(2,'0') + ':' + mi.padStart(2,'0');
+  }
+  // p[1]=depDateTime, p[4]=stops, p[last]=arrDateTime
+  return {
+    dep:   timeStr(p[1] || ''),
+    arr:   timeStr(p[p.length - 1] || ''),
+    stops: parseInt(p[4] || '0') || 0
+  };
+}
+
+// ── 渲染即時航班（FlightAPI 版）──
+function renderRealFlights(flights, origin, dest) {
   const fromCity = selFrom ? selFrom.city : origin;
   const toCity   = selTo   ? selTo.city   : dest;
+  const best     = flights[0];
 
-  // 更新 AI 推薦 Banner（更新各子元素，保留結構）
-  if (flights.length > 0) {
-    const best   = flights[0];
-    const outName = AIRLINE_CODES[best.airline] || best.airline || '未知航空';
-    const retSrc2 = flights.length > 1 ? flights[1] : flights[0];
-    const retName2 = AIRLINE_CODES[retSrc2.airline] || retSrc2.airline || '未知航空';
-    const comboPrice = Math.round(best.price + retSrc2.price * 0.92);
-    const avgPrice   = Math.round(flights.reduce((s,f) => s + f.price, 0) / flights.length);
-    const savings    = Math.round(avgPrice * 1.92 - comboPrice);
-
-    const titleEl = document.getElementById('aiBannerTitle');
-    const descEl  = document.getElementById('aiBannerDesc');
-    const priceEl = document.getElementById('aiBannerPrice');
-    const saveEl  = document.getElementById('aiBannerSave');
-    if (titleEl) titleEl.textContent = outName + ' 去 + ' + retName2 + ' 回';
-    if (descEl)  descEl.textContent  = '即時資料・' + flights.length + ' 個航班組合・Travelpayouts';
-    if (priceEl) priceEl.textContent = 'NT$' + comboPrice.toLocaleString();
-    if (saveEl)  saveEl.textContent  = savings > 0 ? '↓ 省 NT$' + savings.toLocaleString() : '✓ 即時最低價';
-
-    // 儲存最優組合資料供 openModal 使用
-    const retF2 = Object.assign({}, retSrc2, {
-      price: Math.round(retSrc2.price * 0.92),
-      depart: retSrc2.returnAt || retSrc2.depart,
-      returnAt: retSrc2.depart
-    });
-    bestComboData = { outF: best, retF: retF2, comboPrice, outName, retName: retName2 };
+  // 更新 AI 推薦 Banner
+  const titleEl = document.getElementById('aiBannerTitle');
+  const descEl  = document.getElementById('aiBannerDesc');
+  const priceEl = document.getElementById('aiBannerPrice');
+  const saveEl  = document.getElementById('aiBannerSave');
+  if (best) {
+    const maxPrice = flights[flights.length - 1].price;
+    const savings  = maxPrice - best.price;
+    if (titleEl) titleEl.textContent = fromCity + ' → ' + toCity + ' 來回最低價';
+    if (descEl)  descEl.textContent  = '即時資料 · ' + flights.length + ' 個組合 · FlightAPI';
+    if (priceEl) priceEl.textContent = 'NT$' + best.price.toLocaleString();
+    if (saveEl)  saveEl.textContent  = savings > 0 ? '↓ 最多省 NT$' + savings.toLocaleString() : '✓ 即時最低價';
+    bestComboData = {
+      outF: { price: Math.round(best.price * 0.55), depart: best.outDate + 'T' + best.outDep, transfers: best.outStops, airline: '', flightNo: '' },
+      retF: { price: Math.round(best.price * 0.45), depart: best.retDate + 'T' + best.retDep, transfers: best.retStops, airline: '', flightNo: '' },
+      comboPrice: best.price,
+      outName: fromCity + '出發',
+      retName: toCity + '出發'
+    };
   }
 
-  // 搜尋完成後才顯示去回程明細與通路比較區塊
+  // 顯示去回程明細與通路比較
   document.getElementById('comboDetailWrap').style.display = '';
   document.getElementById('channelWrap').style.display = '';
+  if (best) updateComboDetail(best, origin, dest);
 
-  // 更新去回程明細卡
-  const outF = flights[0];
-  const retSrc = flights.length > 1 ? flights[1] : flights[0];
-  const retF = Object.assign({}, retSrc, {
-    price: Math.round(retSrc.price * 0.92),
-    depart: retSrc.returnAt || retSrc.depart,
-    returnAt: retSrc.depart
-  });
-  updateComboDetail(outF, retF, origin, dest);
-
-  // 渲染去程航班
+  // 渲染去程航班卡（前 8 筆）
   const outEl = document.getElementById('outFlights');
   outEl.innerHTML = '';
-  flights.slice(0, 5).forEach(f => renderFlightCard(f, origin, dest, 'out', outEl));
+  flights.slice(0, 8).forEach(f => renderFlightCard(f, 'out', outEl, origin, dest));
 
-  // 渲染回程航班（同航空公司回程）
+  // 渲染回程航班卡（前 5 筆）
   const retEl = document.getElementById('retFlights');
   retEl.innerHTML = '';
-  flights.slice(0, 3).forEach(f => {
-    const retF = Object.assign({}, f, {
-      price: Math.round(f.price * 0.92),
-      depart: f.returnAt || f.depart,
-      returnAt: f.depart
-    });
-    renderFlightCard(retF, dest, origin, 'ret', retEl);
-  });
+  flights.slice(0, 5).forEach(f => renderFlightCard(f, 'ret', retEl, origin, dest));
+
+  // 隱藏靜態「顯示更多」按鈕（已改用即時資料，一次全載）
+  document.querySelectorAll('.show-more-btn').forEach(btn => btn.style.display = 'none');
 }
 
-function updateComboDetail(outF, retF, origin, dest) {
-  function fmtTime(iso) {
-    if (!iso) return '--:--';
-    try { const d = new Date(iso); if (!isNaN(d)) return d.toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'}); } catch(e){}
-    return '--:--';
-  }
-  function stopsLabel(f) { return f.transfers === 0 ? '直飛' : f.transfers + '次轉機'; }
-  function bagsLabel(f)  { return f.transfers === 0 ? '🧳 含 20kg 托運行李 × 1件' : '🧳 請至官網確認行李方案'; }
-
-  const outName = AIRLINE_CODES[outF.airline] || outF.airline || '未知航空';
-  const retName = AIRLINE_CODES[retF.airline] || retF.airline || '未知航空';
-  const outLogo = AIRLINE_LOGOS[outF.airline] || '✈';
-  const retLogo = AIRLINE_LOGOS[retF.airline] || '✈';
-  const outNo   = outF.flightNo ? outF.airline + ' ' + outF.flightNo : outF.airline || '';
-  const retNo   = retF.flightNo ? retF.airline + ' ' + retF.flightNo : retF.airline || '';
+// ── 更新去回程明細卡（FlightAPI 版）──
+function updateComboDetail(f, origin, dest) {
   const fromCity = selFrom ? selFrom.city : origin;
   const toCity   = selTo   ? selTo.city   : dest;
+  const stopsLabel = s => s === 0 ? '直飛' : s + ' 次轉機';
 
   // 去程
-  document.getElementById('cdOutLogo').textContent    = outLogo;
-  document.getElementById('cdOutName').textContent    = outName;
-  document.getElementById('cdOutNo').textContent      = outNo;
-  document.getElementById('cdOutDepTime').textContent = fmtTime(outF.depart);
+  document.getElementById('cdOutLogo').textContent    = '✈';
+  document.getElementById('cdOutName').textContent    = '多家航空';
+  document.getElementById('cdOutNo').textContent      = '';
+  document.getElementById('cdOutDepTime').textContent = f.outDep;
   document.getElementById('cdOutDepApt').innerHTML    = fromCity + '<br>' + origin;
-  document.getElementById('cdOutArrTime').textContent = '--:--';
+  document.getElementById('cdOutArrTime').textContent = f.outArr;
   document.getElementById('cdOutArrApt').innerHTML    = toCity + '<br>' + dest;
-  document.getElementById('cdOutDur').textContent     = stopsLabel(outF);
+  document.getElementById('cdOutDur').textContent     = stopsLabel(f.outStops);
   document.getElementById('cdOutStops').textContent   = '';
-  document.getElementById('cdOutBags').innerHTML      = bagsLabel(outF);
+  document.getElementById('cdOutBags').innerHTML      = '🧳 行李規定請至訂票平台確認';
 
   // 回程
-  document.getElementById('cdRetLogo').textContent    = retLogo;
-  document.getElementById('cdRetName').textContent    = retName;
-  document.getElementById('cdRetNo').textContent      = retNo;
-  document.getElementById('cdRetDepTime').textContent = fmtTime(retF.depart);
+  document.getElementById('cdRetLogo').textContent    = '✈';
+  document.getElementById('cdRetName').textContent    = '多家航空';
+  document.getElementById('cdRetNo').textContent      = '';
+  document.getElementById('cdRetDepTime').textContent = f.retDep;
   document.getElementById('cdRetDepApt').innerHTML    = toCity + '<br>' + dest;
-  document.getElementById('cdRetArrTime').textContent = '--:--';
+  document.getElementById('cdRetArrTime').textContent = f.retArr;
   document.getElementById('cdRetArrApt').innerHTML    = fromCity + '<br>' + origin;
-  document.getElementById('cdRetDur').textContent     = stopsLabel(retF);
+  document.getElementById('cdRetDur').textContent     = stopsLabel(f.retStops);
   document.getElementById('cdRetStops').textContent   = '';
-  document.getElementById('cdRetBags').innerHTML      = bagsLabel(retF);
+  document.getElementById('cdRetBags').innerHTML      = '🧳 行李規定請至訂票平台確認';
 
-  // 動態更新通路比較中的航空官網列
+  // 通路比較列 → 導流訂票
   const chOutName = document.getElementById('channelOutName');
   const chOutBtn  = document.getElementById('channelOutBtn');
   const chRetName = document.getElementById('channelRetName');
   const chRetBtn  = document.getElementById('channelRetBtn');
-  if (chOutName) chOutName.innerHTML = outLogo + ' ' + outName + '官網 <span class="channel-tag direct">官方直售</span>';
-  if (chOutBtn)  chOutBtn.onclick    = () => bookFlight(outName, outF.flightNo || '', 'out');
-  if (chRetName) chRetName.innerHTML = retLogo + ' ' + retName + '官網 <span class="channel-tag direct">官方直售</span>';
-  if (chRetBtn)  chRetBtn.onclick    = () => bookFlight(retName, retF.flightNo || '', 'ret');
+  if (chOutName) chOutName.innerHTML = '✈ 去程最低價 <span class="channel-tag direct">FlightAPI 即時</span>';
+  if (chOutBtn) { chOutBtn.textContent = '搜尋訂票 →'; chOutBtn.onclick = () => openGoogleFlights(origin, dest, f.outDate, f.retDate); }
+  if (chRetName) chRetName.innerHTML = '✈ 回程最低價 <span class="channel-tag direct">FlightAPI 即時</span>';
+  if (chRetBtn) { chRetBtn.textContent = '搜尋訂票 →'; chRetBtn.onclick = () => openGoogleFlights(origin, dest, f.outDate, f.retDate); }
 }
 
-function renderFlightCard(f, fromCode, toCode, dir, container) {
-  const name     = AIRLINE_CODES[f.airline] || f.airline || '未知航空';
-  const logo     = AIRLINE_LOGOS[f.airline] || '✈';
-  const price    = Math.round(f.price);
-  const stops    = f.transfers === 0 ? '直飛' : f.transfers + ' 次轉機';
-  const badge    = f.transfers === 0
+// ── 渲染單張航班卡（FlightAPI 版）──
+function renderFlightCard(f, dir, container, origin, dest) {
+  const depTime  = dir === 'out' ? f.outDep   : f.retDep;
+  const arrTime  = dir === 'out' ? f.outArr   : f.retArr;
+  const stops    = dir === 'out' ? f.outStops : f.retStops;
+  const fromCode = dir === 'out' ? origin : dest;
+  const toCode   = dir === 'out' ? dest   : origin;
+  const fromCity = dir === 'out' ? (selFrom ? selFrom.city : origin) : (selTo ? selTo.city : dest);
+  const toCity   = dir === 'out' ? (selTo ? selTo.city : dest) : (selFrom ? selFrom.city : origin);
+  const stopBadge = stops === 0
     ? '<span class="badge direct">✈ 直飛</span>'
-    : '<span class="badge" style="background:#fee2e2;color:#dc2626">🔄 轉機</span>';
-  let depTimeStr = '--:--';
-  if (f.depart) {
-    try {
-      const d = new Date(f.depart);
-      if (!isNaN(d)) depTimeStr = d.toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
-    } catch(e) {}
-  }
-  const fromCity = (selFrom && dir==='out') ? selFrom.city : (selTo ? selTo.city : fromCode);
-  const toCity   = (selTo   && dir==='out') ? selTo.city   : (selFrom ? selFrom.city : toCode);
-
+    : `<span class="badge" style="background:#fee2e2;color:#dc2626">🔄 ${stops}次轉機</span>`;
   const card = document.createElement('div');
   card.className = 'flight-card fade-in';
   card.innerHTML = `
-    <div class="airline-logo" style="font-size:22px;">${logo}</div>
+    <div class="airline-logo" style="font-size:22px;">✈</div>
     <div class="flight-info">
-      <div class="flight-times">${depTimeStr}<span class="arrow"> → </span>--:--</div>
+      <div class="flight-times">${depTime}<span class="arrow"> → </span>${arrTime}</div>
       <div class="flight-meta">
-        <span>${name}${f.flightNo ? ' ' + f.flightNo : ''}</span>
-        <span>${fromCode} → ${toCode}</span>
+        <span>${fromCity} → ${toCity}</span>
+        <span>${stops === 0 ? '直飛' : stops + '次轉機'}</span>
       </div>
     </div>
     <div class="flight-duration">
       <div class="dur-line"><span>✈</span><div class="dur-dash"></div></div>
-      <div>---</div><div class="dur-label">${stops}</div>
+      <div class="dur-label">${stops === 0 ? '直飛' : stops + '次轉機'}</div>
     </div>
-    <div class="flight-badges">${badge}</div>
+    <div class="flight-badges">${stopBadge}</div>
     <div class="flight-price">
-      <div class="price">NT$${price.toLocaleString()}</div>
-      <div class="price-sub">單人含稅・即時</div>
-      <button class="btn-select" onclick="bookFlight('${name}','${f.flightNo||''}','${dir}')">官網訂票 →</button>
+      <div class="price">NT$${f.price.toLocaleString()}</div>
+      <div class="price-sub">來回含稅・即時</div>
+      <button class="btn-select" onclick="openGoogleFlights('${origin}','${dest}','${f.outDate}','${f.retDate}')">比價訂票 →</button>
     </div>`;
   container.appendChild(card);
 }
@@ -3016,34 +2929,9 @@ function selectFlight(btn, dir) {
 
 // ── Show more flights ──
 function showMoreFlights(dir, btn) {
-  const extras = [
-    { times: '18:00 → 22:40', airline: '日本航空 JL820', price: 'NT$4,200', logo: '🔴', dur: '3h 40m' },
-    { times: '20:30 → 01:10+1', airline: '全日空 NH852', price: 'NT$4,580', logo: '🌸', dur: '3h 40m' }
-  ];
-  const container = document.getElementById(dir === 'out' ? 'outFlights' : 'retFlights');
-  extras.forEach(f => {
-    const card = document.createElement('div');
-    card.className = 'flight-card fade-in';
-    card.innerHTML = `
-      <div class="airline-logo">${f.logo}</div>
-      <div class="flight-info">
-        <div class="flight-times">${f.times.replace(' → ','<span class="arrow"> → </span>')}</div>
-        <div class="flight-meta"><span>${f.airline}</span><span>桃園 TPE → 成田 NRT</span></div>
-      </div>
-      <div class="flight-duration">
-        <div class="dur-line"><span>✈</span><div class="dur-dash"></div></div>
-        <div>${f.dur}</div><div class="dur-label">直飛</div>
-      </div>
-      <div class="flight-badges"><span class="badge direct">✈ 直飛</span></div>
-      <div class="flight-price">
-        <div class="price">${f.price}</div>
-        <div class="price-sub">單人含稅</div>
-        <button class="btn-select outline" onclick="selectFlight(this,'${dir}')">選擇</button>
-      </div>`;
-    container.appendChild(card);
-  });
+  // 已改為 FlightAPI 即時資料，所有可用航班已一次載入
   btn.style.display = 'none';
-  showToast('✅ 已載入更多航班');
+  showToast('ℹ️ 所有即時航班已顯示，如需更多結果請重新搜尋');
 }
 
 // ── Price Calendar ──
