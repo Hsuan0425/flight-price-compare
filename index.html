@@ -2443,7 +2443,7 @@ function showNoFlightsMessage(origin, dest) {
 
 // ── FlightAPI.io 搜尋 ──
 async function searchWithFlightAPI(origin, dest, depDate, retDate) {
-  const url = `https://api.flightapi.io/roundtrip/${FAPI_KEY}/${origin}/${dest}/${depDate}/${retDate}/1/0/0/Economy/TWD/TW`;
+  const url = `https://api.flightapi.io/roundtrip/${FAPI_KEY}/${origin}/${dest}/${depDate}/${retDate}/1/0/0/Economy/TWD`;
   const resp = await fetchWithTimeout(url, {}, 25000);
   if (!resp.ok) throw new Error(`FlightAPI HTTP ${resp.status}`);
   const data = await resp.json();
